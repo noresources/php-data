@@ -188,7 +188,10 @@ class CsvSerializer implements DataUnserializerInterface,
 		foreach ($data as $line)
 		{
 			if (!\is_array($line))
-				$line = Container::isArray($line);
+				$line = Container::isTraversable($line) ? Container::createArray(
+					$line) : [
+					$line
+				];
 
 			$normalizedLine = [];
 			foreach ($line as $key => $value)
