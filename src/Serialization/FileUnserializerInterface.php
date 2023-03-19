@@ -13,7 +13,7 @@ use DoctrineTest\InstantiatorTestAsset\UnserializeExceptionArrayObjectAsset;
 /**
  * Provide data deserialization from given file format(s)
  */
-interface DataFileUnerializerInterface
+interface FileUnserializerInterface
 {
 
 	/**

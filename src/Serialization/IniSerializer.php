@@ -8,51 +8,37 @@
  */
 namespace NoreSources\Data\Serialization;
 
-use NoreSources\MediaType\MediaTypeInterface;
-use NoreSources\Data\Serialization\Traits\DataFileExtensionTrait;
-use NoreSources\Data\Serialization\Traits\DataFileUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\MediaTypeListTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
+use NoreSources\Data\Utility\FileExtensionListInterface;
+use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
+use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
-use NoreSources\MediaType\MediaType;
+use NoreSources\MediaType\MediaTypeInterface;
 
 /**
  * INI deserialization.
  */
 class IniSerializer implements DataUnserializerInterface,
-	DataFileUnerializerInterface
+	FileUnserializerInterface, StreamUnserializerInterface,
+	MediaTypeListInterface, FileExtensionListInterface
 {
 	use MediaTypeListTrait;
-	use DataFileUnserializerTrait;
-	use DataFileExtensionTrait;
+	use FileExtensionListTrait;
+
+	use StreamUnserializerMediaTypeTrait;
+	use StreamUnserializerDataUnserializerTrait;
+	use StreamUnserializerFileUnserializerTrait;
 
 	public function __construct()
-	{
-		$this->setFileExtensions([
-			'ini'
-		]);
-	}
-
-	public function getUnserializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
-
-	/**
-	 * Note: Guessing ini media type from file content type is unreliable
-	 */
-	public function canUnserializeFromFile($filename,
-		MediaTypeInterface $mediaType = null)
-	{
-		$mediaType = $this->normalizeFileMediaType(null, $mediaType);
-		if ($mediaType && $this->matchMediaType($mediaType))
-			return true;
-		return $this->matchExtension($filename);
-	}
+	{}
 
 	public function unserializeFromFile($filename,
 		MediaTypeInterface $mediaType = null)
 	{
-		$data = @parse_ini_file($filename, true);
+		$data = @\parse_ini_file($filename, true);
 		if ($data === false)
 		{
 			$error = \error_get_last();
@@ -73,47 +59,26 @@ class IniSerializer implements DataUnserializerInterface,
 		return $data;
 	}
 
-	public function getUnserializableFileMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
-
-	public function canUnserializeData($data,
+	public function unserializeFromStream($stream,
 		MediaTypeInterface $mediaType = null)
 	{
-		if (!\is_string($data))
-			return false;
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-		return true;
+		return $this->canUnserializeData(\stream_get_contents($stream),
+			$mediaType);
 	}
 
-	protected function matchMediaType(MediaTypeInterface $mediaType)
-	{
-		$types = $this->getMediaTypes();
-		$s = \strval($mediaType);
-		foreach ($types as $type)
-		{
-			if (\strcasecmp(\strval($type), $s) == 0)
-				return true;
-		}
-
-		$syntax = $mediaType->getStructuredSyntax();
-		return \is_string($syntax) && (\strcasecmp($syntax, 'ini') == 0);
-	}
-
-	protected function buildMediaTypeList()
+	public function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::createFromString('text/x-ini'),
-			MediaTypeFactory::createFromString(
+			MediaTypeFactory::getInstance()->createFromString('text/x-ini'),
+			MediaTypeFactory::getInstance()->createFromString(
 				'application/x-wine-extension-ini')
 		];
 	}
 
-	protected function getMediaTypeFactoryFlags()
+	public function buildFileExtensionList()
 	{
-		return MediaTypeFactory::FROM_ALL |
-			MediaTypeFactory::FROM_EXTENSION_FIRST;
+		return [
+			'ini'
+		];
 	}
 }

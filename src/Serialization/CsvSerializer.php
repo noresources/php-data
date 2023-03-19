@@ -8,18 +8,20 @@
  */
 namespace NoreSources\Data\Serialization;
 
-use NoreSources\MediaType\MediaType;
-use NoreSources\Type\TypeConversion;
-use NoreSources\MediaType\MediaTypeCompareTrait;
-use NoreSources\MediaType\MediaTypeInterface;
-use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\Container\Container;
-use NoreSources\MediaType\MediaTypeFileExtensionRegistry;
-use NoreSources\Data\Serialization\Traits\DataFileMediaTypeNormalizerTrait;
-use NoreSources\Data\Serialization\Traits\MediaTypeListTrait;
-use NoreSources\Data\Serialization\Traits\DataFileExtensionTrait;
-use NoreSources\Data\Serialization\Traits\DataFileUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\DataFileSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
+use NoreSources\Data\Utility\FileExtensionListInterface;
+use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
+use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
+use NoreSources\MediaType\MediaTypeFactory;
+use NoreSources\MediaType\MediaTypeInterface;
+use NoreSources\Type\TypeConversion;
 use NoreSources\Type\TypeConversionException;
 
 /**
@@ -32,14 +34,32 @@ use NoreSources\Type\TypeConversionException;
  * - eol (unserializer and PHP 8.1+ for serializer)
  */
 class CsvSerializer implements DataUnserializerInterface,
-	DataSerializerInterface, DataFileUnerializerInterface,
-	DataFileSerializerInterface
+	DataSerializerInterface, FileUnserializerInterface,
+	FileSerializerInterface, StreamSerializerInterface,
+	StreamUnserializerInterface, MediaTypeListInterface,
+	FileExtensionListInterface
 {
 
 	use MediaTypeListTrait;
-	use DataFileExtensionTrait;
-	use DataFileSerializerTrait;
-	use DataFileUnserializerTrait;
+	use FileExtensionListTrait;
+
+	use StreamSerializerMediaTypeTrait;
+	use StreamSerializerDataSerializerTrait;
+	use StreamSerializerFileSerializerTrait;
+
+	use StreamUnserializerMediaTypeTrait;
+	use StreamUnserializerDataUnserializerTrait;
+	use StreamUnserializerFileUnserializerTrait;
+
+	const PARAMETER_SEPARATOR = 'separator';
+
+	const PARAMETER_ENCLOSURE = 'enclosure';
+
+	const PARAMETER_ESCAPE = 'escape';
+
+	const PARAMETER_EOL = 'eol';
+
+	const PARAMETER_FLATTEN = 'flatten';
 
 	/**
 	 * Default field separator
@@ -71,9 +91,6 @@ class CsvSerializer implements DataUnserializerInterface,
 
 	public function __construct()
 	{
-		$this->setFileExtensions([
-			'csv'
-		]);
 		$this->stringifier = [
 			self::class,
 			'defaultStringifier'
@@ -95,70 +112,21 @@ class CsvSerializer implements DataUnserializerInterface,
 		$this->stringifier = $callback;
 	}
 
-	public function getUnserializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
-
-	public function unserializeData($data,
+	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
-		$separator = $enclosure = $escape = $eol = null;
-		$this->retrieveParameters($separator, $enclosure, $escape, $eol,
+		$data = $this->prepareSerialization($data);
+		$this->writeLinesToStream($stream, $data, $mediaType);
+	}
+
+	public function unserializeFromStream($stream,
+		MediaTypeInterface $mediaType = null)
+	{
+		$presentation = $this->retrievePresentationParameters(
 			$mediaType);
-
-		$lines = \explode($eol, $data);
-		$csv = [];
-
-		foreach ($lines as $line)
-		{
-			if (empty($line))
-				continue;
-			$csv[] = \str_getcsv($line, $separator, $enclosure, $escape);
-		}
-		return $csv;
-	}
-
-	public function canUnserializeData($data,
-		MediaTypeInterface $mediaType = null)
-	{
-		if (!\is_string($data))
-			return false;
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-		return true;
-	}
-
-	public function getSerializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
-
-	public function canSerializeData($data,
-		MediaTypeInterface $mediaType = null)
-	{
-		$wrappers = \stream_get_wrappers();
-		if (!Container::valueExists($wrappers, 'data'))
-			return false;
-
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-		return true;
-	}
-
-	public function unserializeFromFile($filename,
-		MediaTypeInterface $mediaType = null)
-	{
 		$separator = $enclosure = $escape = $eol = null;
-		$this->retrieveParameters($separator, $enclosure, $escape, $eol,
-			$mediaType);
-		$stream = @\fopen($filename, 'rb');
-		if (!\is_resource($stream))
-		{
-			$error = \error_get_last();
-			throw new DataSerializationException(
-				'Failed to open input stream: ' . $error['message']);
-		}
+		$this->retrieveFormatParameters($separator, $enclosure, $escape,
+			$eol, $mediaType);
 		$lines = [];
 		while ($line = @\fgetcsv($stream, 0, $separator, $enclosure,
 			$escape))
@@ -172,41 +140,30 @@ class CsvSerializer implements DataUnserializerInterface,
 					return $v;
 				});
 		}
-		return $lines;
+
+		return $this->finalizeDeserialization($lines, $presentation);
 	}
 
-	public function serializeData($data,
+	public function unserializeData($data,
 		MediaTypeInterface $mediaType = null)
 	{
-		$data = $this->prepareSerialization($data);
-		$stream = fopen('php://memory', 'w');
-		if (!\is_resource($stream))
+		$presentation = $this->retrievePresentationParameters(
+			$mediaType);
+		$separator = $enclosure = $escape = $eol = null;
+		$this->retrieveFormatParameters($separator, $enclosure, $escape,
+			$eol, $mediaType);
+
+		$lines = \explode($eol, $data);
+		$csv = [];
+
+		foreach ($lines as $line)
 		{
-			$error = \error_get_last();
-			throw new DataSerializationException(
-				'Failed to open data stream: ' . $error['message']);
+			if (empty($line))
+				continue;
+			$csv[] = \str_getcsv($line, $separator, $enclosure, $escape);
 		}
 
-		$this->writeLinesToStream($stream, $data, $mediaType);
-		@\fseek($stream, 0);
-		$content = \stream_get_contents($stream);
-		@\fclose($stream);
-		return $content;
-	}
-
-	public function serializeToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
-	{
-		$data = $this->prepareSerialization($data);
-		$stream = @\fopen($filename, 'wb');
-		if (!\is_resource($stream))
-		{
-			$error = \error_get_last();
-			throw new DataSerializationException(
-				'Failed to open output file: ' . $error['message']);
-		}
-		$this->writeLinesToStream($stream, $data, $mediaType);
-		@\fclose($stream);
+		return $this->finalizeDeserialization($csv, $presentation);
 	}
 
 	public static function defaultStringifier($value)
@@ -218,6 +175,42 @@ class CsvSerializer implements DataUnserializerInterface,
 		catch (TypeConversionException $e)
 		{}
 		return serialize($value);
+	}
+
+	protected function retrievePresentationParameters(
+		MediaTypeInterface $mediaType = null)
+	{
+		$options = [
+			self::PARAMETER_FLATTEN => false
+		];
+		if (!$mediaType)
+			return $options;
+
+		foreach ([
+			self::PARAMETER_FLATTEN
+		] as $b)
+		{
+			if ($mediaType->getParameters()->has($b))
+				$options[$b] = true;
+		}
+
+		return $options;
+	}
+
+	protected function finalizeDeserialization(&$lines,
+		$options = array())
+	{
+		$flatten = Container::keyValue($options, self::PARAMETER_FLATTEN);
+		if (!$flatten)
+			return $lines;
+		if (!Container::isArray($lines))
+			return $lines;
+		if (Container::count($lines) != 1)
+			return $lines;
+		if (!Container::keyExists($lines, 0))
+			return $lines;
+		$lines = $lines[0];
+		return $this->finalizeDeserialization($lines, $options);
 	}
 
 	protected function prepareSerialization($data)
@@ -308,23 +301,23 @@ class CsvSerializer implements DataUnserializerInterface,
 	protected function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::createFromString('text/csv'),
+			MediaTypeFactory::getInstance()->createFromString('text/csv'),
 			/*
 			 *  application/csv is not a registered media type but
 			 *  finfo_type / mime_content_type may return this one
 			 */
-			MediaTypeFactory::createFromString('application/csv')
+			MediaTypeFactory::getInstance()->createFromString('application/csv')
 		];
 	}
 
-	protected function retrieveParameters(&$separator, &$enclosure,
+	protected function retrieveFormatParameters(&$separator, &$enclosure,
 		&$escape, &$eol, $mediaType)
 	{
 		foreach ([
-			'separator',
-			'enclosure',
-			'escape',
-			'eol'
+			self::PARAMETER_SEPARATOR,
+			self::PARAMETER_ENCLOSURE,
+			self::PARAMETER_ESCAPE,
+			self::PARAMETER_EOL
 		] as $v)
 		{
 			$$v = $this->$v;
@@ -337,8 +330,8 @@ class CsvSerializer implements DataUnserializerInterface,
 	protected function writeLinesToStream($stream, $lines, $mediaType)
 	{
 		$separator = $enclosure = $escape = $eol = null;
-		$this->retrieveParameters($separator, $enclosure, $escape, $eol,
-			$mediaType);
+		$this->retrieveFormatParameters($separator, $enclosure, $escape,
+			$eol, $mediaType);
 		foreach ($lines as $line)
 		{
 			$args = [
@@ -358,6 +351,13 @@ class CsvSerializer implements DataUnserializerInterface,
 					'Failed to write CSV line: ' . $error['message']);
 			}
 		}
+	}
+
+	protected function buildFileExtensionList()
+	{
+		return [
+			'csv'
+		];
 	}
 
 	/**

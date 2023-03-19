@@ -12,7 +12,7 @@ use NoreSources\MediaType\MediaTypeInterface;
 /**
  * Provide data serialization to a given file format
  */
-interface DataFileSerializerInterface
+interface FileSerializerInterface
 {
 
 	/**

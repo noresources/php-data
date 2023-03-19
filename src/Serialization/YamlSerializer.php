@@ -8,14 +8,18 @@
  */
 namespace NoreSources\Data\Serialization;
 
-use NoreSources\MediaType\MediaTypeInterface;
-use NoreSources\Data\Serialization\Traits\MediaTypeListTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
+use NoreSources\Data\Utility\FileExtensionListInterface;
+use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
+use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
-use NoreSources\MediaType\MediaType;
-use NoreSources\Data\Serialization\Traits\DataFileSerializerTrait;
-use NoreSources\Data\Serialization\Traits\DataFileUnserializerTrait;
-use NoreSources\MediaType\MediaTypeFileExtensionRegistry;
-use NoreSources\Data\Serialization\Traits\DataFileExtensionTrait;
+use NoreSources\MediaType\MediaTypeInterface;
 
 /**
  * YAML content and file (de)serialization.
@@ -23,72 +27,76 @@ use NoreSources\Data\Serialization\Traits\DataFileExtensionTrait;
  * Require the yaml extension
  */
 class YamlSerializer implements DataUnserializerInterface,
-	DataSerializerInterface, DataFileSerializerInterface,
-	DataFileUnerializerInterface
+	DataSerializerInterface, FileSerializerInterface,
+	FileUnserializerInterface, StreamSerializerInterface,
+	StreamUnserializerInterface, FileExtensionListInterface,
+	MediaTypeListInterface
 {
 	use MediaTypeListTrait;
-	use DataFileSerializerTrait;
-	use DataFileUnserializerTrait;
-	use DataFileExtensionTrait;
+	use FileExtensionListTrait;
+
+	use StreamSerializerMediaTypeTrait;
+	use StreamSerializerDataSerializerTrait;
+	use StreamSerializerFileSerializerTrait;
+
+	use StreamUnserializerMediaTypeTrait;
+	use StreamUnserializerDataUnserializerTrait;
+	use StreamUnserializerFileUnserializerTrait;
+
+	/**
+	 * Default encoding
+	 *
+	 * @var string
+	 */
+	public $encoding = YAML_ANY_ENCODING;
 
 	public function __construct()
-	{
-		$this->setFileExtensions([
-			'yaml',
-			'yml'
-		]);
-	}
+	{}
 
 	public static function prerequisites()
 	{
 		return \extension_loaded('yaml');
 	}
 
-	public function getSerializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
-
-	public function canSerializeData($data,
+	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-
-		return true;
+		\fwrite($stream, $this->serializeData($data, $mediaType));
 	}
 
-	/**
-	 * Indicates if the given file can be unserialized
-	 *
-	 * Since their is no reliable method to gen the correct media type of a YAML file,
-	 * only the file extension is checked.
-	 */
-	public function canUnserializeFromFile($filename,
+	public function serializeToFile($filename, $data,
 		MediaTypeInterface $mediaType = null)
 	{
-		if (\is_string($mediaType))
-			$mediaType = MediaTypeFactory::createFromString($mediaType);
-		if ($mediaType instanceof MediaTypeInterface)
+		$encoding = $this->encoding;
+		if ($mediaType &&
+			$mediaType->getParameters()->offsetExists('charset'))
 		{
-			$types = $this->getMediaTypes();
-			foreach ($types as $type)
-			{
-				if ($type->match($mediaType))
-					return true;
-			}
+			$charset = $mediaType->getParameters()->offsetGet('charset');
+			if (\strcasecmp($charset, 'utf-8') == 0)
+				$encoding = YAML_UTF8_ENCODING;
+		}
+		return \yaml_emit_file($filename, $data, $encoding);
+	}
+
+	public function unserializeFromStream($stream,
+		MediaTypeInterface $mediaType = null)
+	{
+		return \yaml_parse(\stream_get_contents($stream));
+	}
+
+	public function serializeData($data,
+		MediaTypeInterface $mediaType = null)
+	{
+		$encoding = $this->encoding;
+		if ($mediaType &&
+			$mediaType->getParameters()->offsetExists('charset'))
+		{
+			$charset = $mediaType->getParameters()->offsetGet('charset');
+			if (\strcasecmp($charset, 'utf-8') == 0)
+				$encoding = YAML_UTF8_ENCODING;
 		}
 
-		$x = \pathinfo($filename, PATHINFO_EXTENSION);
-		return \in_array($x, [
-			'yaml',
-			'yml'
-		]);
-	}
-
-	public function getUnserializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
+		return \yaml_emit($data, $encoding);
 	}
 
 	public function unserializeData($data,
@@ -97,47 +105,32 @@ class YamlSerializer implements DataUnserializerInterface,
 		return \yaml_parse($data);
 	}
 
-	public function serializeData($data,
-		MediaTypeInterface $mediaType = null)
+	protected function getMediaTypeFactoryFlagsForFile()
 	{
-		$encoding = YAML_ANY_ENCODING;
-		if ($mediaType &&
-			$mediaType->getParameters()->offsetExists('charset'))
-		{
-			$charset = $mediaType->getParameters()->offsetGet('charset');
-			if (\strcasecmp($charset, 'utf-8') == 0)
-				$encoding = YAML_UTF8_ENCODING;
-		}
-		return \yaml_emit($data, $encoding);
+		return MediaTypeFactory::FROM_ALL |
+			MediaTypeFactory::FROM_EXTENSION_FIRST;
 	}
 
-	public function canUnserializeData($data,
-		MediaTypeInterface $mediaType = null)
+	public function matchMediaType(MediaTypeInterface $mediaType)
 	{
-		if (!\is_string($data))
-			return false;
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-		return true;
-	}
-
-	protected function matchMediaType(MediaTypeInterface $mediaType)
-	{
-		$types = $this->getMediaTypes();
-		$s = \strval($mediaType);
-		foreach ($types as $type)
-		{
-			if (\strcasecmp(\strval($type), $s) == 0)
-				return true;
-		}
 		$syntax = $mediaType->getStructuredSyntax();
-		return \is_string($syntax) && (\strcasecmp($syntax, 'yaml') == 0);
+		if (\strcasecmp($syntax, 'yaml') == 0)
+			return true;
+		return $this->matchMediaTypeList($mediaType);
 	}
 
-	protected function buildMediaTypeList()
+	public function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::createFromString('text/x-yaml')
+			MediaTypeFactory::getInstance()->createFromString('text/x-yaml')
+		];
+	}
+
+	public function buildFileExtensionList()
+	{
+		return [
+			'yaml',
+			'yml'
 		];
 	}
 }

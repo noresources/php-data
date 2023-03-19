@@ -8,14 +8,12 @@
  */
 namespace NoreSources\Data\Serialization;
 
-use NoreSources\MediaType\MediaType;
-use NoreSources\Data\Serialization\Traits\DataFileMediaTypeNormalizerTrait;
-use NoreSources\Data\Serialization\Traits\DataFileExtensionTrait;
-use NoreSources\Data\Serialization\Traits\DataFileUnserializerTrait;
-use NoreSources\MediaType\MediaTypeInterface;
-use NoreSources\Data\Serialization\Traits\MediaTypeListTrait;
+use NoreSources\Data\Serialization\Traits\FileUnserializerTrait;
+use NoreSources\Data\Utility\FileExtensionListInterface;
+use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
+use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
-use function Composer\Autoload\includeFile;
+use NoreSources\MediaType\MediaTypeInterface;
 
 /**
  * Load data from a PHP "module" file that returns data.
@@ -25,20 +23,12 @@ use function Composer\Autoload\includeFile;
  *
  * ATTENTION Never use this with untrusted files.
  */
-class PhpFileUnserializer implements DataFileUnerializerInterface
+class PhpFileUnserializer implements FileUnserializerInterface,
+	FileExtensionListInterface
 {
 	use MediaTypeListTrait;
-	use DataFileMediaTypeNormalizerTrait;
-	use DataFileExtensionTrait;
-
-	public function canUnserializeFromFile($filename,
-		MediaTypeInterface $mediaType = null)
-	{
-		$mediaType = $this->normalizeFileMediaType($filename, $mediaType);
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-		return false;
-	}
+	use FileUnserializerTrait;
+	use FileExtensionListTrait;
 
 	public function getUnserializableFileMediaTypes()
 	{
@@ -53,16 +43,19 @@ class PhpFileUnserializer implements DataFileUnerializerInterface
 	}
 
 	public function __construct()
-	{
-		$this->setFileExtensions([
-			'php'
-		]);
-	}
+	{}
 
 	protected function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::createFromString('text/x-php')
+			MediaTypeFactory::getInstance()->createFromString('text/x-php')
+		];
+	}
+
+	protected function buildFileExtensionList()
+	{
+		return [
+			'php'
 		];
 	}
 }

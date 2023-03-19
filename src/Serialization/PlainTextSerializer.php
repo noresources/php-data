@@ -8,80 +8,71 @@
  */
 namespace NoreSources\Data\Serialization;
 
-use NoreSources\MediaType\MediaTypeInterface;
-use NoreSources\Data\Serialization\Traits\MediaTypeListTrait;
-use NoreSources\MediaType\MediaTypeFactory;
-use NoreSources\MediaType\MediaType;
-use NoreSources\Data\Serialization\Traits\DataFileSerializerTrait;
-use NoreSources\Data\Serialization\Traits\DataFileUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\DataFileExtensionTrait;
-use NoreSources\Type\TypeConversion;
 use NoreSources\Container\Container;
+use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
+use NoreSources\Data\Utility\FileExtensionListInterface;
+use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
+use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
+use NoreSources\MediaType\MediaTypeFactory;
+use NoreSources\MediaType\MediaTypeInterface;
+use NoreSources\Type\TypeConversion;
 
 /**
  * Plain text serialization
  */
 class PlainTextSerializer implements DataUnserializerInterface,
-	DataSerializerInterface, DataFileUnerializerInterface,
-	DataFileSerializerInterface
+	DataSerializerInterface, FileUnserializerInterface,
+	FileSerializerInterface, StreamSerializerInterface,
+	StreamUnserializerInterface, FileExtensionListInterface,
+	MediaTypeListInterface
 {
 	use MediaTypeListTrait;
-	use DataFileSerializerTrait;
-	use DataFileUnserializerTrait;
-	use DataFileExtensionTrait;
+	use FileExtensionListTrait;
+
+	use StreamSerializerMediaTypeTrait;
+	use StreamSerializerDataSerializerTrait;
+	use StreamSerializerFileSerializerTrait;
+
+	use StreamUnserializerMediaTypeTrait;
+	use StreamUnserializerDataUnserializerTrait;
+	use StreamUnserializerFileUnserializerTrait;
 
 	public function __construct()
-	{
-		$this->setFileExtensions([
-			'txt',
-			'plain'
-		]);
-	}
+	{}
 
-	public function getSerializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
-
-	public function canSerializeData($data,
-		MediaTypeInterface $mediaType = null)
-	{
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-
-		return true;
-	}
-
-	public function getUnserializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
-
-	public function unserializeData($data,
+	public function unserializeFromStream($stream,
 		MediaTypeInterface $mediaType = null)
 	{
 		$list = [];
-		$crlf = \explode("\r\n", TypeConversion::toString($data));
-
-		foreach ($crlf as $a)
+		while (($line = \fgets($stream)) !== false)
 		{
-			$cr = \explode("\r", $a);
-			foreach ($cr as $b)
+			$line = \rtrim($line, "\n");
+			if (empty($line))
+				continue;
+			$values = \explode("\r", $line);
+			foreach ($values as $value)
 			{
-				$lf = \explode("\n", $b);
-				foreach ($lf as $value)
+				if (empty($value))
+					continue;
+
+				if (\is_numeric($value))
 				{
-					if (\is_numeric($value))
-					{
-						if (\ctype_digit($value))
-							$value = TypeConversion::toInteger($value);
-						else
-							$value = TypeConversion::toFloat($value);
-					}
-					$list[] = $value;
+					if (\ctype_digit($value))
+						$value = TypeConversion::toInteger($value);
+					else
+						$value = TypeConversion::toFloat($value);
 				}
+
+				$list[] = $value;
 			}
 		}
+
 		$c = \count($list);
 		if ($c == 0)
 			return '';
@@ -90,57 +81,57 @@ class PlainTextSerializer implements DataUnserializerInterface,
 		return $list;
 	}
 
-	public function serializeData($data,
+	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
 		if (!Container::isTraversable($data))
-		{
-			return TypeConversion::toString($data);
-		}
+			return \fwrite($stream, TypeConversion::toString($data));
 
-		$lines = [];
-
+		$count = 0;
 		foreach ($data as $value)
 		{
 			$visited = [];
-			$this->recursiveSerializeData($lines, $visited, $value,
-				$mediaType);
+			$this->recursiveSerializeData($stream, $count, $visited,
+				$value, $mediaType);
 		}
-		return \implode("\n", $lines);
 	}
 
-	public function canUnserializeData($data,
-		MediaTypeInterface $mediaType = null)
-	{
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-		return true;
-	}
-
-	public function recursiveSerializeData(&$lines, &$visited, $data,
-		MediaTypeInterface $mediaType = null)
+	protected function recursiveSerializeData(&$stream, &$count,
+		&$visited, $data, MediaTypeInterface $mediaType = null)
 	{
 		if (\in_array($data, $visited))
 			return;
 
 		if (!Container::isTraversable($data))
 		{
-			\array_push($lines, TypeConversion::toString($data));
+			if ($count)
+				\fwrite($stream, PHP_EOL);
+			$count++;
+			\fwrite($stream, TypeConversion::toString($data));
 			return;
 		}
 
 		$visited[] = $data;
 		foreach ($data as $value)
 		{
-			$this->recursiveSerializeData($lines, $visited, $value,
-				$mediaType);
+			$this->recursiveSerializeData($stream, $count, $visited,
+				$value, $mediaType);
 		}
 	}
 
 	protected function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::createFromString('text/plain')
+			MediaTypeFactory::getInstance()->createFromString('text/plain')
+		];
+	}
+
+	protected function buildFileExtensionList()
+	{
+		return [
+			'txt',
+			'plain'
 		];
 	}
 }
+

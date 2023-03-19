@@ -9,11 +9,15 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
-use NoreSources\Type\TypeConversion;
-use NoreSources\MediaType\MediaTypeInterface;
-use NoreSources\Data\Serialization\Traits\MediaTypeListTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
+use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
-use NoreSources\MediaType\MediaType;
+use NoreSources\MediaType\MediaTypeInterface;
+use NoreSources\Type\TypeConversion;
 
 /**
  * URL-encoded query parameter (de)serialization
@@ -21,32 +25,30 @@ use NoreSources\MediaType\MediaType;
  * @see https://datatracker.ietf.org/doc/html/rfc3986
  */
 class UrlEncodedSerializer implements DataUnserializerInterface,
-	DataSerializerInterface
+	DataSerializerInterface, StreamSerializerInterface,
+	StreamUnserializerInterface, MediaTypeListInterface
 {
 	use MediaTypeListTrait;
 
-	public function getSerializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
+	use StreamSerializerMediaTypeTrait;
+	use StreamSerializerDataSerializerTrait;
 
-	public function canSerializeData($data,
+	use StreamUnserializerMediaTypeTrait;
+	use StreamUnserializerDataUnserializerTrait;
+
+	public function unserializeFromStream($stream,
 		MediaTypeInterface $mediaType = null)
 	{
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-		return !\is_object($data) || Container::isTraversable($data);
-	}
-
-	public function getUnserializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
+		return $this->unserializeData(\stream_get_contents($stream),
+			$mediaType);
 	}
 
 	public function unserializeData($data,
 		MediaTypeInterface $mediaType = null)
 	{
-		if (\strpos($data, '=') !== false)
+		$e = \strpos($data, '=');
+
+		if ($e !== false && $e > 0)
 		{
 			$params = [];
 			\parse_str($data, $params);
@@ -54,6 +56,12 @@ class UrlEncodedSerializer implements DataUnserializerInterface,
 		}
 
 		return \urldecode($data);
+	}
+
+	public function serializeToStream($stream, $data,
+		MediaTypeInterface $mediaType = null)
+	{
+		return \fwrite($stream, $this->serializedata($data, $mediaType));
 	}
 
 	public function serializeData($data,
@@ -65,20 +73,10 @@ class UrlEncodedSerializer implements DataUnserializerInterface,
 		return \urlencode(TypeConversion::toString($data));
 	}
 
-	public function canUnserializeData($data,
-		MediaTypeInterface $mediaType = null)
-	{
-		if (!\is_string($data))
-			return false;
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-		return true;
-	}
-
-	protected function buildMediaTypeList()
+	public function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::createFromString(
+			MediaTypeFactory::getInstance()->createFromString(
 				'application/x-www-form-urlencoded')
 		];
 	}

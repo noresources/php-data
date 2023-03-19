@@ -2,14 +2,13 @@
 <?php
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\Data\Serialization\DataSerializationManager;
-use NoreSources\Data\Serialization\Traits\DataFileMediaTypeNormalizerTrait;
+use NoreSources\Data\Serialization\Traits\FileMediaTypeNormalizerTrait;
 use NoreSources\Type\TypeDescription;
 
 require_once (__DIR__ . '/../vendor/autoload.php');
 
 class App
 {
-	use DataFileMediaTypeNormalizerTrait;
 
 	public function run($argv)
 	{
@@ -34,7 +33,7 @@ class App
 				}
 
 				$a = \array_shift($argv);
-				$from = MediaTypeFactory::createFromString($a);
+				$from = MediaTypeFactory::getInstance()->createFromString($a);
 			}
 			elseif ($a == '--to')
 			{
@@ -45,7 +44,7 @@ class App
 				}
 
 				$a = \array_shift($argv);
-				$to = MediaTypeFactory::createFromString($a);
+				$to = MediaTypeFactory::getInstance()->createFromString($a);
 			}
 			elseif (empty($input))
 				$input = $a;
@@ -61,12 +60,11 @@ class App
 		{
 			try
 			{
-				$from = MediaTypeFactory::createFromMedia($input);
-				$from = self::normalizeFileMediaType($input, $from);
+				$from = MediaTypeFactory::getInstance()->createFromMedia($input);
 			}
 			catch (\Exception $e)
 			{
-				$from = MediaTypeFactory::createFromString('text/plain');
+				$from = MediaTypeFactory::getInstance()->createFromString('text/plain');
 			}
 		}
 
@@ -74,8 +72,7 @@ class App
 		{
 			try
 			{
-				$to = MediaTypeFactory::createFromMedia($output);
-				$to = self::normalizeFileMediaType($output, $to);
+				$to = MediaTypeFactory::getInstance()->createFromMedia($output);
 			}
 			catch (\Exception $e)
 			{
@@ -86,14 +83,14 @@ class App
 		$manager = new DataSerializationManager();
 		if (empty($to) ||
 			!$manager->canSerializeToFile($output, null, $to))
-			$to = MediaTypeFactory::createFromString('application/json');
+			$to = MediaTypeFactory::getInstance()->createFromString('application/json');
 
 		if ($verbose)
 		{
 			echo ('Input  ' . $input . ' (' . $from->serialize() . ')' .
 				PHP_EOL);
 
-			$unserializers = $manager->getDataFileUnserializersFor(
+			$unserializers = $manager->getFileUnserializersFor(
 				$input, $from);
 			$unserializers = \array_map(
 				function ($c) {
@@ -104,7 +101,7 @@ class App
 			echo ('Output ' . $output . ' (' . $to->serialize() . ')' .
 				PHP_EOL);
 
-			$serializers = $manager->getDataFileSerializersFor($output,
+			$serializers = $manager->getFileSerializersFor($output,
 				null, $to);
 			$serializers = \array_map(
 				function ($c) {

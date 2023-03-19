@@ -8,13 +8,15 @@
  */
 namespace NoreSources\Data\Serialization;
 
-use NoreSources\MediaType\MediaType;
 use NoreSources\Container\Container;
-use NoreSources\Type\TypeConversion;
-use NoreSources\MediaType\MediaTypeInterface;
-use NoreSources\Data\Serialization\Traits\MediaTypeListTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
+use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
-use NoreSources\Data\Serialization\Traits\DataFileSerializerTrait;
+use NoreSources\MediaType\MediaTypeInterface;
+use NoreSources\Type\TypeConversion;
 
 /**
  * Lua primitive serialization
@@ -22,10 +24,14 @@ use NoreSources\Data\Serialization\Traits\DataFileSerializerTrait;
  * @see https://datatracker.ietf.org/doc/html/rfc3986
  */
 class LuaSerializer implements DataSerializerInterface,
-	DataFileSerializerInterface
+	FileSerializerInterface, StreamSerializerInterface,
+	MediaTypeListInterface
 {
 	use MediaTypeListTrait;
-	use DataFileSerializerTrait;
+
+	use StreamSerializerMediaTypeTrait;
+	use StreamSerializerDataSerializerTrait;
+	use StreamSerializerFileSerializerTrait;
 
 	/**
 	 * Export value "as is"
@@ -45,28 +51,24 @@ class LuaSerializer implements DataSerializerInterface,
 	 */
 	const MODE_MODULE = 'module';
 
-	public function getSerializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
+	public $indentation = ' ';
 
-	public function canSerializeData($data,
-		MediaTypeInterface $mediaType = null)
-	{
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-
-		return !\is_object($data) || Container::isTraversable($data);
-	}
-
-	public function serializeData($data,
+	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
 		$prefix = '';
+		$meta = \stream_get_meta_data($stream);
+		switch (Container::keyValue($meta, 'wrapper_type', 'undefined'))
+		{
+			case 'file':
+				$prefix = 'return ';
+			default:
+			break;
+		}
 		if ($mediaType)
 		{
 			if (\is_string($mediaType))
-				$mediaType = MediaTypeFactory::createFromMedia(
+				$mediaType = MediaTypeFactory::getInstance()->createFromMedia(
 					$mediaType);
 
 			if (($mediaType instanceof MediaTypeInterface) &&
@@ -78,76 +80,42 @@ class LuaSerializer implements DataSerializerInterface,
 			}
 		}
 
-		if (Container::isTraversable($data))
-		{
-			return $prefix . $this->serializeTable($data);
-		}
-
-		return $prefix . $this->serializeLiteral($data);
-	}
-
-	public function serializeToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
-	{
-		$serialized = '';
-		$prefix = 'return ';
-		if ($mediaType)
-		{
-			if (\is_string($mediaType))
-				$mediaType = MediaTypeFactory::createFromMedia(
-					$mediaType);
-
-			if (($mediaType instanceof MediaTypeInterface) &&
-				($mode = Container::keyValue(
-					$mediaType->getParameters(), 'mode')) &&
-				(\strcasecmp($mode, self::MODE_RAW) == 0))
-			{
-				$prefix = '';
-			}
-		}
+		fwrite($stream, $prefix);
 
 		if (Container::isTraversable($data))
-			$serialized = $prefix . $this->serializeTable($data);
-		else
-			$serialized = $prefix . $this->serializeLiteral($data);
+			return $this->serializeTable($stream, $data);
 
-		$flags = 0;
-		if (\is_string($filename))
-		{
-			if (!filter_var($filename, FILTER_VALIDATE_URL))
-				$flags = LOCK_EX;
-		}
-
-		\file_put_contents($filename, $serialized, $flags);
+		$this->serializeLiteral($stream, $data);
 	}
 
-	protected function serializeTableKey($key)
+	protected function serializeTableKey($stream, $key)
 	{
 		if (\preg_match(chr(1) . self::LUA_IDENTIFIER_PATTERN . chr(1),
 			$key))
-			return $key;
+			return \fwrite($stream, $key);
 		elseif (\is_integer($key))
-			return '[' . $key . ']';
-		return '["' . \addslashes(TypeConversion::toString($key)) . '"]';
+			return \fwrite($stream, '[' . $key . ']');
+		\fwrite($stream,
+			'["' . \addslashes(TypeConversion::toString($key)) . '"]');
 	}
 
-	protected function serializeTable($table, $level = 0)
+	protected function serializeTable($stream, $table, $level = 0)
 	{
 		$first = true;
-		$s = '';
-		$pad = \str_repeat(' ', $level);
+		\fwrite($stream, "{\n");
+		$pad = \str_repeat($this->indentation, $level);
 		if (Container::isIndexed($table))
 		{
 			foreach ($table as $value)
 			{
 				if (!$first)
-					$s .= ",\n";
-				$first = false;
-				$s .= ' ';
+					\fwrite($stream, ",\n");
+				\fwrite($stream, $this->indentation . $pad);
 				if (Container::isTraversable($value))
-					$s .= $this->serializeTable($value, $level + 1);
+					$this->serializeTable($stream, $value, $level + 1);
 				else
-					$s .= $this->serializeLiteral($value);
+					$this->serializeLiteral($stream, $value);
+				$first = false;
 			}
 		}
 		else
@@ -155,44 +123,38 @@ class LuaSerializer implements DataSerializerInterface,
 			foreach ($table as $key => $value)
 			{
 				if (!$first)
-					$s .= ",\n";
-				$first = false;
-				$s .= ' ';
+					\fwrite($stream, ",\n");
 
-				$s .= $this->serializeTableKey($key) . ' = ';
+				\fwrite($stream, $this->indentation . $pad);
+				$this->serializeTableKey($stream, $key);
+				\fwrite($stream, ' = ');
 				if (Container::isTraversable($value))
-					$s .= $this->serializeTable($value, $level + 1);
+					$this->serializeTable($stream, $value, $level + 1);
 				else
-					$s .= $this->serializeLiteral($value);
+					$this->serializeLiteral($stream, $value);
+				$first = false;
 			}
 		}
 
-		$s .= "\n}";
-
-		if ($level)
-		{
-			$s = \preg_replace('/^/m', $pad, $s);
-		}
-
-		return "{\n" . $s;
+		\fwrite($stream, "\n" . $pad . '}');
 	}
 
-	protected function serializeLiteral($value)
+	protected function serializeLiteral($stream, $value)
 	{
 		if (\is_null($value))
-			return 'nil';
+			return \fwrite($stream, 'nil');
 		if (\is_bool($value))
-			return ($value) ? 'true' : 'false';
+			return \fwrite($stream, ($value) ? 'true' : 'false');
 		if (\is_numeric($value))
-			return $value;
+			return \fwrite($stream, \strval($value));
 
-		return '"' . \addslashes($value) . '"';
+		\fwrite($stream, '"' . \addslashes($value) . '"');
 	}
 
-	protected function buildMediaTypeList()
+	public function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::createFromString('text/x-lua')
+			MediaTypeFactory::getInstance()->createFromString('text/x-lua')
 		];
 	}
 

@@ -8,14 +8,19 @@
  */
 namespace NoreSources\Data\Serialization;
 
-use NoreSources\MediaType\MediaTypeInterface;
-use NoreSources\Data\Serialization\Traits\MediaTypeListTrait;
-use NoreSources\MediaType\MediaTypeFactory;
-use NoreSources\MediaType\MediaType;
-use NoreSources\Data\Serialization\Traits\DataFileSerializerTrait;
-use NoreSources\Data\Serialization\Traits\DataFileUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\DataFileExtensionTrait;
 use NoreSources\Container\Container;
+use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
+use NoreSources\Data\Utility\FileExtensionListInterface;
+use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
+use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
+use NoreSources\MediaType\MediaTypeFactory;
+use NoreSources\MediaType\MediaTypeInterface;
 
 /**
  * JSON content and file (de)serialization
@@ -29,95 +34,116 @@ use NoreSources\Container\Container;
  *
  */
 class JsonSerializer implements DataUnserializerInterface,
-	DataSerializerInterface, DataFileUnerializerInterface,
-	DataFileSerializerInterface
+	DataSerializerInterface, FileUnserializerInterface,
+	FileSerializerInterface, StreamSerializerInterface,
+	StreamUnserializerInterface, MediaTypeListInterface,
+	FileExtensionListInterface
 {
 	use MediaTypeListTrait;
-	use DataFileSerializerTrait;
-	use DataFileUnserializerTrait;
-	use DataFileExtensionTrait;
+	use FileExtensionListTrait;
+
+	use StreamSerializerMediaTypeTrait;
+	use StreamSerializerDataSerializerTrait;
+	use StreamSerializerFileSerializerTrait;
+
+	use StreamUnserializerMediaTypeTrait;
+	use StreamUnserializerDataUnserializerTrait;
+	use StreamUnserializerFileUnserializerTrait;
 
 	const STYLE_PRETTY = 'pretty';
 
 	public function __construct()
-	{
-		$this->setFileExtensions([
-			'json',
-			'jsn'
-		]);
-	}
+	{}
 
 	public static function prerequisites()
 	{
 		return \extension_loaded('json');
 	}
 
-	public function getSerializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
-
-	public function canSerializeData($data,
-		MediaTypeInterface $mediaType = null)
-	{
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-
-		return true;
-	}
-
-	public function getUnserializableDataMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
-
-	public function unserializeData($data,
-		MediaTypeInterface $mediaType = null)
-	{
-		return \json_decode($data, true);
-	}
-
-	public function serializeData($data,
+	///////////////////////////////////////////////////
+	// StreamSerializer
+	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
 		$flags = 0;
-		if ($mediaType)
+		if ($mediaType &&
+			($style = Container::keyValue($mediaType->getParameters(),
+				'style')) &&
+			(\strcasecmp($style, self::STYLE_PRETTY) == 0))
 		{
-			if (\is_string($mediaType))
-				$mediaType = MediaTypeFactory::createFromString(
-					$mediaType);
-			if (($mediaType instanceof MediaTypeInterface) &&
-				($style = Container::keyValue(
-					$mediaType->getParameters(), 'style')) &&
-				(\strcasecmp($style, self::STYLE_PRETTY) == 0))
-			{
-				$flags |= JSON_PRETTY_PRINT;
-			}
+			$flags |= JSON_PRETTY_PRINT;
 		}
 
-		return \json_encode($data, $flags);
+		$serialized = @\json_encode($data, $flags);
+		$error = \json_last_error();
+		if ($error != JSON_ERROR_NONE)
+			throw new DataSerializationException(json_last_error_msg());
+
+		$written = @\fwrite($stream, $serialized);
+		if ($written === false)
+		{
+			$error = \error_get_last();
+			throw new DataSerializationException($error['message']);
+		}
 	}
 
-	public function canUnserializeData($data,
+	/////////////////////////////////////////////////
+	// StreamUnserializer
+	public function unserializeFromStream($stream,
 		MediaTypeInterface $mediaType = null)
 	{
-		if (!\is_string($data))
-			return false;
-		if ($mediaType)
-			return $this->matchMediaType($mediaType);
-		return true;
+		$data = @\json_decode(\stream_get_contents($stream), true);
+		$error = \json_last_error();
+		if ($error != JSON_ERROR_NONE)
+			throw new DataSerializationException(json_last_error_msg());
+		return $data;
 	}
 
-	protected function matchMediaType(MediaTypeInterface $mediaType)
+	///////////////////////////////////////////////////
+	// DataSerializer
+
+	/**
+	 * A more straight forward implementation than the default on in traits.
+	 *
+	 * {@inheritdoc}
+	 * @see \NoreSources\Data\Serialization\DataUnserializerInterface::unserializeData()
+	 */
+	public function unserializeData($data,
+		MediaTypeInterface $mediaType = null)
+	{
+		$data = @\json_decode($data, true);
+		$error = \json_last_error();
+		if ($error != JSON_ERROR_NONE)
+			throw new DataSerializationException(json_last_error_msg());
+		return $data;
+	}
+
+	/**
+	 * Accept any media type with the "json" structured syntax declaration
+	 *
+	 * @param MediaTypeInterface $mediaType
+	 * @return boolean
+	 */
+	public function matchMediaType(MediaTypeInterface $mediaType)
 	{
 		$syntax = $mediaType->getStructuredSyntax();
-		return \is_string($syntax) && (\strcasecmp($syntax, 'json') == 0);
+		if (\strcasecmp($syntax, 'json') == 0)
+			return true;
+		return $this->matchMediaTypeList($mediaType);
 	}
 
 	protected function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::createFromString('application/json')
+			MediaTypeFactory::getInstance()->createFromString('application/json')
+		];
+	}
+
+	protected function buildFileExtensionList()
+	{
+		return [
+			'json',
+			'jsn'
 		];
 	}
 }

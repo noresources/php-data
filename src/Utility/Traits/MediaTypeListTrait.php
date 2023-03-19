@@ -6,19 +6,17 @@
  *
  * #package Data
  */
-namespace NoreSources\Data\Serialization\Traits;
+namespace NoreSources\Data\Utility\Traits;
 
 use NoreSources\MediaType\MediaTypeInterface;
 
+/**
+ * Implements MediaTypeListInterface
+ */
 trait MediaTypeListTrait
 {
 
-	protected function buildMediaTypeList()
-	{
-		throw new \LogicException('Not implementaed');
-	}
-
-	protected function getMediaTypes()
+	public function getMediaTypes()
 	{
 		if (!isset($this->mediaTypes))
 		{
@@ -30,17 +28,26 @@ trait MediaTypeListTrait
 		return $this->mediaTypes;
 	}
 
-	protected function matchMediaType(MediaTypeInterface $mediaType)
+	public function matchMediaType(MediaTypeInterface $mediaType)
 	{
-		$types = $this->getMediaTypes();
-		$s = \strval($mediaType);
-		foreach ($types as $type)
+		return $this->matchMediaTypeList($mediaType);
+	}
+
+	protected function matchMediaTypeList(MediaTypeInterface $mediaType)
+	{
+		$mediaTypes = $this->getMediaTypes();
+		foreach ($mediaTypes as $type)
 		{
-			if (\strcasecmp(\strval($type), $s) == 0)
+			if ($mediaType->match($type))
 				return true;
 		}
 
 		return false;
+	}
+
+	protected function buildMediaTypeList()
+	{
+		throw new \LogicException('Not implementaed');
 	}
 
 	/**
