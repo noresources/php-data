@@ -8,6 +8,7 @@
  */
 namespace NoreSources\Data\Serialization\Traits;
 
+use NoreSources\Data\Serialization\DataSerializationException;
 use NoreSources\MediaType\MediaTypeInterface;
 
 /**

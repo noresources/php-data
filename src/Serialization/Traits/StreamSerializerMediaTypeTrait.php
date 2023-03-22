@@ -9,6 +9,7 @@
 namespace NoreSources\Data\Serialization\Traits;
 
 use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\MediaType\MediaTypeInterface;
 
 /**
  * Assumes class using this trait also use MediaTypeListTrait
@@ -22,7 +23,8 @@ trait StreamSerializerMediaTypeTrait
 		return $this->getMediaTypes();
 	}
 
-	public function isSerializable($data, $mediaType = null)
+	public function isSerializable($data,
+		MediaTypeInterface $mediaType = null)
 	{
 		if ($mediaType && ($this instanceof MediaTypeListInterface))
 			return $this->matchMediaType($mediaType);

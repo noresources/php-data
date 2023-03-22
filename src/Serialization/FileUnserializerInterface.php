@@ -8,7 +8,6 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\MediaType\MediaTypeInterface;
-use DoctrineTest\InstantiatorTestAsset\UnserializeExceptionArrayObjectAsset;
 
 /**
  * Provide data deserialization from given file format(s)

@@ -35,7 +35,8 @@ trait StreamUnserializerMediaTypeTrait
 		{
 			try
 			{
-				$mediaType = MediaTypeFactory::getInstance()->createFromMedia($stream);
+				$mediaType = MediaTypeFactory::getInstance()->createFromMedia(
+					$stream);
 			}
 			catch (MediaTypeException $e)
 			{}
