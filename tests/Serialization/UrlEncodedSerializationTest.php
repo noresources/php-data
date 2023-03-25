@@ -5,19 +5,18 @@
  *
  * #package Data
  */
-namespace NoreSources\Data\Test\Serialization;
+namespace NoreSources\Data\TestCase\Serialization;
 
 use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\DataUnserializerInterface;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
 use NoreSources\Data\Serialization\UrlEncodedSerializer;
-use NoreSources\Data\Test\SerializerTestCaseBase;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\Type\TypeDescription;
 
-class UrlEncodedSerializationTest extends SerializerTestCaseBase
+final class UrlEncodedSerializationTest extends SerializerTestCaseBase
 {
 
 	const CLASS_NAME = UrlEncodedSerializer::class;

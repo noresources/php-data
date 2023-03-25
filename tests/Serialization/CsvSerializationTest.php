@@ -5,7 +5,7 @@
  *
  * #package Data
  */
-namespace NoreSources\Data\Test\Serialization;
+namespace NoreSources\Data\TestCase\Serialization;
 
 use NoreSources\Container\Container;
 use NoreSources\Data\Serialization\CsvSerializer;
@@ -15,12 +15,11 @@ use NoreSources\Data\Serialization\FileSerializerInterface;
 use NoreSources\Data\Serialization\FileUnserializerInterface;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
-use NoreSources\Data\Test\SerializerTestCaseBase;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
 
-class CsvSerializationTest extends SerializerTestCaseBase
+final class CsvSerializationTest extends SerializerTestCaseBase
 {
 
 	const CLASS_NAME = CsvSerializer::class;

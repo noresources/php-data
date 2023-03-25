@@ -5,7 +5,7 @@
  *
  * #package Data
  */
-namespace NoreSources\Data\Test\Serialization;
+namespace NoreSources\Data\TestCase\Serialization;
 
 use NoreSources\Container\Container;
 use NoreSources\Data\Serialization\DataSerializationManager;

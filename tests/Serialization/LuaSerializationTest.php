@@ -5,18 +5,17 @@
  *
  * #package Data
  */
-namespace NoreSources\Data\Test\Serialization;
+namespace NoreSources\Data\TestCase\Serialization;
 
 use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\FileSerializerInterface;
 use NoreSources\Data\Serialization\LuaSerializer;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
-use NoreSources\Data\Test\SerializerTestCaseBase;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\Type\TypeDescription;
 
-class LuaSerializationTest extends SerializerTestCaseBase
+final class LuaSerializationTest extends SerializerTestCaseBase
 {
 
 	const CLASS_NAME = LuaSerializer::class;

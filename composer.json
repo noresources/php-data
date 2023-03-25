@@ -15,7 +15,8 @@
 	], 
 	"autoload": {
 		"psr-4": {
-			"NoreSources\\Data\\": "src/"
+			"NoreSources\\Data\\": "src/",
+			"NoreSources\\Data\\Test\\": "tests/src/"
 		}
 	}, 
 	"require": {
@@ -31,7 +32,7 @@
 	}, 
 	"autoload-dev": {
 		"psr-4": {
-			"NoreSources\\Data\\Test\\": "tests/src/"
+			"NoreSources\\Data\\TestCase\\": "tests/"
 		}
 	}, 
 	"require-dev": {

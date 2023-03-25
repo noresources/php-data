@@ -5,17 +5,16 @@
  *
  * #package Data
  */
-namespace NoreSources\Data\Test\Serialization;
+namespace NoreSources\Data\TestCase\Serialization;
 
 use NoreSources\Data\Serialization\DataUnserializerInterface;
 use NoreSources\Data\Serialization\FileUnserializerInterface;
 use NoreSources\Data\Serialization\IniSerializer;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
-use NoreSources\Data\Test\SerializerTestCaseBase;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 
-class IniSerializationTest extends SerializerTestCaseBase
+final class IniSerializationTest extends SerializerTestCaseBase
 {
 
 	const CLASS_NAME = IniSerializer::class;

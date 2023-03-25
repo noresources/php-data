@@ -5,7 +5,7 @@
  *
  * #package Data
  */
-namespace NoreSources\Data\Test\Serialization;
+namespace NoreSources\Data\TestCase\Serialization;
 
 use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\DataUnserializerInterface;
@@ -14,12 +14,11 @@ use NoreSources\Data\Serialization\FileUnserializerInterface;
 use NoreSources\Data\Serialization\JsonSerializer;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
-use NoreSources\Data\Test\SerializerTestCaseBase;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
 
-class JsonSerializationTest extends SerializerTestCaseBase
+final class JsonSerializationTest extends SerializerTestCaseBase
 {
 
 	const CLASS_NAME = JsonSerializer::class;

@@ -5,7 +5,7 @@
  *
  * #package Data
  */
-namespace NoreSources\Data\Test;
+namespace NoreSources\Data\TestCase\Serialization;
 
 use NoreSources\Container\Container;
 use NoreSources\Data\Serialization\DataSerializerInterface;
@@ -14,12 +14,14 @@ use NoreSources\Data\Serialization\FileSerializerInterface;
 use NoreSources\Data\Serialization\FileUnserializerInterface;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
+use NoreSources\Data\Test\SerializerAssertionTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\Type\TypeDescription;
 
 class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 {
+	use SerializerAssertionTrait;
 
 	const REFERENCE_STRING_DATA = 'Hello world';
 
@@ -31,19 +33,10 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 
 	const CLASS_NAME = 'MustOverride';
 
-	protected function canTestSerializer()
+	public function setUp(): void
 	{
-		$method = [
-			static::CLASS_NAME,
-			'prerequisites'
-		];
-		if (!\method_exists($method[0], $method[1]))
-			return true;
-		$ok = \call_user_func($method);
-		if ($ok)
-			return true;
-		$this->assertFalse($ok, static::CLASS_NAME . ' not available');
-		return false;
+		$this->initializeSerializerAssertions(static::CLASS_NAME,
+			__DIR__ . '/..');
 	}
 
 	protected function assertImplements($list, $serializer,
@@ -145,8 +138,8 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 				$actual = $serializer->unserializeFromStream($stream,
 					$mediaType);
 				$this->assertEquals($expected, $actual,
-					'Unserializer data from file ' .
-					\basename($filename) . $mediaTypeMessagePart);
+					'Unserializer data from file ' . \basename(
+						$filename) . $mediaTypeMessagePart);
 			}
 
 			if ($serializer instanceof StreamUnserializerInterface)
