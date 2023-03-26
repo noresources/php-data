@@ -9,11 +9,12 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
-use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
+use NoreSources\Data\Tableizer;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
@@ -28,10 +29,13 @@ use NoreSources\Type\TypeConversionException;
  * CSV (comma separated value) (de)serializer
  *
  * Supported media type parameters
- * - separator
- * - enclosure
- * - escape
- * - eol (unserializer and PHP 8.1+ for serializer)
+ * <ul>
+ * <li><code>separator</code></li>
+ * <li><code>enclosure</code></li>
+ * <li><code>escape</code></li>
+ * <li><code>eol</code> (serializer and PHP 8.1+ for serializer)</li>
+ * <li><code>flatten</code> (unserializer only)</li>
+ * </ul>
  */
 class CsvSerializer implements DataUnserializerInterface,
 	DataSerializerInterface, FileUnserializerInterface,
@@ -215,85 +219,17 @@ class CsvSerializer implements DataUnserializerInterface,
 
 	protected function prepareSerialization($data)
 	{
-		if (!\is_array($data))
-			return [
-				[
-					$this->prepareFieldSerialization($data)
-				]
-			];
+		$tableizer = new Tableizer();
+		$tableizer->setCellNormalizer(
+			[
+				$this,
+				'prepareFieldSerialization'
+			]);
 
-		if (Container::isAssociative($data))
-		{
-			$propertyList = [];
-			foreach ($data as $key => $value)
-			{
-				$propertyList[] = [
-					$key,
-					$this->prepareFieldSerialization($value)
-				];
-			}
-
-			return $propertyList;
-		}
-
-		$keys = [];
-		$normalized = [];
-		foreach ($data as $line)
-		{
-			if (!\is_array($line))
-				$line = Container::isTraversable($line) ? Container::createArray(
-					$line) : [
-					$line
-				];
-
-			$normalizedLine = [];
-			foreach ($line as $key => $value)
-			{
-				if (!Container::keyExists($keys, $key))
-					$keys[$key] = \count($keys);
-				$normalizedLine[$keys[$key]] = $this->prepareFieldSerialization(
-					$value);
-				ksort($normalizedLine);
-			}
-
-			$normalized[] = $normalizedLine;
-		}
-
-		foreach ($normalized as $i => $line)
-		{
-			$changed = false;
-			foreach ($keys as $key => $index)
-			{
-				if (Container::keyExists($line, $index))
-					continue;
-				$changed = true;
-				$normalized[$i][$index] = '';
-			}
-			if ($changed)
-				ksort($normalized[$i]);
-		}
-
-		$requireHeader = false;
-		foreach ($keys as $k => $v)
-		{
-			if ($k != $v)
-			{
-				$requireHeader = true;
-				break;
-			}
-		}
-
-		if ($requireHeader)
-		{
-			$keys = \array_flip($keys);
-			ksort($keys);
-			array_unshift($normalized, $keys);
-		}
-
-		return $normalized;
+		return $tableizer($data);
 	}
 
-	protected function prepareFieldSerialization($data)
+	public function prepareFieldSerialization($data)
 	{
 		return \call_user_func($this->stringifier, $data);
 	}
@@ -301,12 +237,14 @@ class CsvSerializer implements DataUnserializerInterface,
 	protected function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::getInstance()->createFromString('text/csv'),
+			MediaTypeFactory::getInstance()->createFromString(
+				'text/csv'),
 			/*
 			 *  application/csv is not a registered media type but
 			 *  finfo_type / mime_content_type may return this one
 			 */
-			MediaTypeFactory::getInstance()->createFromString('application/csv')
+			MediaTypeFactory::getInstance()->createFromString(
+				'application/csv')
 		];
 	}
 
