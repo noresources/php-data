@@ -44,7 +44,7 @@ trait SerializerAssertionTrait
 		$ok = $method->invoke(null);
 		if ($ok)
 			return true;
-		if (\method_exists($this, 'assertFals'))
+		if (\method_exists($this, 'assertFalse'))
 			$this->assertFalse($ok,
 				$this->serializerClass->getShortName() . ' not available');
 		return false;
