@@ -8,12 +8,12 @@
  */
 namespace NoreSources\Data\Serialization;
 
+use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
@@ -35,11 +35,11 @@ class YamlSerializer implements DataUnserializerInterface,
 	use MediaTypeListTrait;
 	use FileExtensionListTrait;
 
-	use StreamSerializerMediaTypeTrait;
+	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;
 	use StreamSerializerFileSerializerTrait;
 
-	use StreamUnserializerMediaTypeTrait;
+	use StreamUnserializerBaseTrait;
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
 

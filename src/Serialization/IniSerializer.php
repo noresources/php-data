@@ -10,7 +10,7 @@ namespace NoreSources\Data\Serialization;
 
 use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerBaseTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
@@ -28,7 +28,7 @@ class IniSerializer implements DataUnserializerInterface,
 	use MediaTypeListTrait;
 	use FileExtensionListTrait;
 
-	use StreamUnserializerMediaTypeTrait;
+	use StreamUnserializerBaseTrait;
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
 

@@ -10,9 +10,9 @@ namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerBaseTrait;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
@@ -30,10 +30,10 @@ class UrlEncodedSerializer implements DataUnserializerInterface,
 {
 	use MediaTypeListTrait;
 
-	use StreamSerializerMediaTypeTrait;
+	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;
 
-	use StreamUnserializerMediaTypeTrait;
+	use StreamUnserializerBaseTrait;
 	use StreamUnserializerDataUnserializerTrait;
 
 	public function unserializeFromStream($stream,

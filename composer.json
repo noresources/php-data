@@ -21,7 +21,7 @@
 	}, 
 	"require": {
 		"php": ">=5.6", 
-		"noresources/ns-php-mediatype": "^1.5"
+		"noresources/ns-php-mediatype": "^1.6"
 	}, 
 	"suggest": {
 		"ext-json": "*", 

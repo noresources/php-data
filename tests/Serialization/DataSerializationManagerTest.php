@@ -27,6 +27,7 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 				'select' => UrlEncodedSerializer::class
 			],
 			'JSON' => [
+				'if' => JsonSerializer::prerequisites(),
 				'input' => \json_encode('Hello world!'),
 				'expected' => 'Hello world!',
 				'type' => 'application/json',
@@ -47,6 +48,12 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 		$manager = new DataSerializationManager();
 		foreach ($tests as $label => $test)
 		{
+			$available = Container::keyValue($test, 'if', true);
+			if (!$available)
+			{
+				$this->assertFalse($available, $label . ' not supported');
+				continue;
+			}
 			$input = Container::keyValue($test, 'input');
 			$expected = Container::keyValue($test, 'expected', $input);
 			$mediaType = Container::keyValue($test, 'type');
@@ -66,8 +73,10 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 					Container::IMPLODE_BETWEEN => ', ',
 					Container::IMPLODE_BETWEEN_LAST => ' or '
 				]);
+			if (empty($deserializerNameList))
+				$deserializerNameList = 'None';
 
-			$deserializers = \array_map(
+			$deserializersText = \array_map(
 				[
 					TypeDescription::class,
 					'getName'
@@ -75,7 +84,7 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 
 			if (($select = Container::keyValue($test, 'select')))
 			{
-				$this->assertContains($select, $deserializers,
+				$this->assertContains($select, $deserializersText,
 					$label . ' using ' . $deserializerNameList);
 			}
 

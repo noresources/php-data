@@ -105,7 +105,7 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 			$stream = \fopen($filename, 'rb');
 			$actual = $serializer->isUnserializable($stream, $mediaType);
 			$this->assertEquals($canUnserialize, $actual,
-				'Can unserializer stream' . $mediaTypeMessagePart);
+				'Can unserialize stream' . $mediaTypeMessagePart);
 		}
 
 		if (!$canUnserialize)
