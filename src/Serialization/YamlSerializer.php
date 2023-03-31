@@ -8,11 +8,11 @@
  */
 namespace NoreSources\Data\Serialization;
 
-use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerMediaTypeTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
@@ -121,8 +121,11 @@ class YamlSerializer implements DataUnserializerInterface,
 
 	public function buildMediaTypeList()
 	{
+		$factory = MediaTypeFactory::getInstance();
 		return [
-			MediaTypeFactory::getInstance()->createFromString('text/x-yaml')
+			$factory->createFromString('text/x-yaml'),
+			$factory->createFromString('text/yaml'),
+			$factory->createFromString('application/yaml')
 		];
 	}
 
