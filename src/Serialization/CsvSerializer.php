@@ -10,12 +10,14 @@ namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
 use NoreSources\Data\Tableizer;
+use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerBaseTrait;
+use NoreSources\Data\Serialization\Traits\UnserializableMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
@@ -37,15 +39,18 @@ use NoreSources\Type\TypeConversionException;
  * <li><code>flatten</code> (unserializer only)</li>
  * </ul>
  */
-class CsvSerializer implements DataUnserializerInterface,
+class CsvSerializer implements UnserializableMediaTypeInterface,
+	SerializableMediaTypeInterface, DataUnserializerInterface,
 	DataSerializerInterface, FileUnserializerInterface,
-	FileSerializerInterface, StreamSerializerInterface,
-	StreamUnserializerInterface, MediaTypeListInterface,
+	FileSerializerInterface, StreamUnserializerInterface,
+	StreamSerializerInterface, MediaTypeListInterface,
 	FileExtensionListInterface
 {
-
 	use MediaTypeListTrait;
 	use FileExtensionListTrait;
+
+	use UnserializableMediaTypeTrait;
+	use SerializableMediaTypeTrait;
 
 	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;
@@ -204,17 +209,24 @@ class CsvSerializer implements DataUnserializerInterface,
 	protected function finalizeDeserialization(&$lines,
 		$options = array())
 	{
+		if (Container::count($lines) > 0)
+		{
+			$last = \array_pop($lines);
+			if (!((Container::count($last) == 1) &&
+				Container::firstValue($last) === null))
+			{
+				$lines[] = $last;
+			}
+		}
+
 		$flatten = Container::keyValue($options, self::PARAMETER_FLATTEN);
-		if (!$flatten)
-			return $lines;
-		if (!Container::isArray($lines))
-			return $lines;
-		if (Container::count($lines) != 1)
-			return $lines;
-		if (!Container::keyExists($lines, 0))
-			return $lines;
-		$lines = $lines[0];
-		return $this->finalizeDeserialization($lines, $options);
+		if ($flatten && Container::count($lines) == 1)
+		{
+			$f = Container::firstValue($lines);
+			if (Container::count($f) == 1)
+				return Container::firstValue($f);
+		}
+		return $lines;
 	}
 
 	protected function prepareSerialization($data)
@@ -270,6 +282,8 @@ class CsvSerializer implements DataUnserializerInterface,
 		$separator = $enclosure = $escape = $eol = null;
 		$this->retrieveFormatParameters($separator, $enclosure, $escape,
 			$eol, $mediaType);
+
+		$hasEOL = (version_compare(PHP_VERSION, '8.1.0', '>='));
 		foreach ($lines as $line)
 		{
 			$args = [
@@ -278,14 +292,14 @@ class CsvSerializer implements DataUnserializerInterface,
 				$separator,
 				$enclosure
 			];
-			if (version_compare(PHP_VERSION, '8.1.0', '>='))
+			if ($hasEOL)
 				$args[] = $eol;
 
 			$result = @\call_user_func_array('\fputcsv', $args);
 			if ($result === false)
 			{
 				$error = \error_get_last();
-				throw new DataSerializationException(
+				throw new SerializationException(
 					'Failed to write CSV line: ' . $error['message']);
 			}
 		}

@@ -16,13 +16,6 @@ interface FileUnserializerInterface
 {
 
 	/**
-	 * Get the list of file types supported by this deserializer.
-	 *
-	 * @return MediaTypeInterface[]
-	 */
-	function getUnserializableFileMediaTypes();
-
-	/**
 	 *
 	 * @param string $filename
 	 *        	Input file path
@@ -30,7 +23,7 @@ interface FileUnserializerInterface
 	 *        	File content type
 	 * @return boolean TRUE if instance can unserialize file type
 	 */
-	function canUnserializeFromFile($filename,
+	function isUnserializableFromFile($filename,
 		MediaTypeInterface $mediaType = null);
 
 	/**
@@ -39,7 +32,7 @@ interface FileUnserializerInterface
 	 *        	File to UnserializeExceptionArrayObjectAsset
 	 * @param MediaTypeInterface $mediaType
 	 *        	File content tyep
-	 * @throws DataSerializationException::
+	 * @throws SerializationException::
 	 * @return mixed
 	 */
 	function unserializeFromFile($filename,

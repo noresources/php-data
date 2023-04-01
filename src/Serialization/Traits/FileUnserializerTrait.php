@@ -8,6 +8,7 @@
  */
 namespace NoreSources\Data\Serialization\Traits;
 
+use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeException;
@@ -20,7 +21,7 @@ use NoreSources\MediaType\MediaTypeInterface;
 trait FileUnserializerTrait
 {
 
-	public function canUnserializeFromFile($filename,
+	public function isUnserializableFromFile($filename,
 		MediaTypeInterface $mediaType = null)
 	{
 		$testExtension = $this instanceof FileExtensionListInterface &&
@@ -31,7 +32,8 @@ trait FileUnserializerTrait
 				\pathinfo($filename, PATHINFO_EXTENSION));
 		}
 
-		if ($this instanceof MediaTypeListInterface)
+		if (($this instanceof MediaTypeListInterface) ||
+			($this instanceof UnserializableMediaTypeInterface))
 		{
 			if (!$mediaType)
 			{
@@ -46,7 +48,12 @@ trait FileUnserializerTrait
 			}
 
 			if ($mediaType)
-				return $this->matchMediaType($mediaType);
+			{
+				if ($this instanceof UnserializableMediaTypeInterface)
+					return $this->isMediaTypeUnserializable($mediaType);
+				if ($this instanceof MediaTypeListInterface)
+					return $this->matchMediaType($mediaType);
+			}
 		}
 
 		if ($testExtension)

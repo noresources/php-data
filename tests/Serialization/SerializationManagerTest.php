@@ -8,13 +8,13 @@
 namespace NoreSources\Data\TestCase\Serialization;
 
 use NoreSources\Container\Container;
-use NoreSources\Data\Serialization\DataSerializationManager;
 use NoreSources\Data\Serialization\JsonSerializer;
+use NoreSources\Data\Serialization\SerializationManager;
 use NoreSources\Data\Serialization\UrlEncodedSerializer;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\Type\TypeDescription;
 
-final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
+final class SerializationManagerTest extends \PHPUnit\Framework\TestCase
 {
 
 	public function testDeserializerSelection()
@@ -45,7 +45,7 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 			]
 		];
 
-		$manager = new DataSerializationManager();
+		$manager = new SerializationManager();
 		foreach ($tests as $label => $test)
 		{
 			$available = Container::keyValue($test, 'if', true);
@@ -61,7 +61,7 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 				$mediaType = MediaTypeFactory::getInstance()->createFromString(
 					$mediaType);
 
-			$deserializers = $manager->getDataUnserializerFor($input,
+			$deserializers = $manager->getDataUnserializersFor($input,
 				$mediaType);
 
 			$deserializerNameList = Container::implodeValues(
@@ -107,15 +107,11 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 
 	public function testManagerFile()
 	{
-		$manager = new DataSerializationManager();
+		$manager = new SerializationManager();
 
 		foreach ([
-			'getUnserializableDataMediaTypes',
-			'getSerializableDataMediaTypes',
-			'getUnserializableFileMediaTypes',
-			'getSerializableFileMediaTypes',
-			'getSerializableMediaTypes',
-			'getUnserializableMediaTypes'
+			'getSerializableMediaRanges',
+			'getUnserializableMediaRanges'
 		] as $method)
 		{
 			$result = \call_user_func([
@@ -146,12 +142,12 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 					$extension . ' file for test ' . $label);
 
 				$this->assertTrue(
-					$manager->canUnserializeFromFile($filename),
+					$manager->isUnserializableFromFile($filename),
 					$label . ' can unserialize .' . $extension);
 
 				$data = $manager->unserializeFromFile($filename);
 
-				$this->assertTrue($manager->canSerializeData($data),
+				$this->assertTrue($manager->isSerializableTo($data),
 					$label .
 					' - Can serialize the result of file deserialization');
 
@@ -161,13 +157,13 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 					'Re-serialize');
 
 				$this->assertTrue(
-					$manager->canUnserializeData($serialized),
+					$manager->isUnserializableFrom($serialized),
 					$label . ' can re-unserialize serialized data');
 
 				$data = $manager->unserializeData($serialized);
 
 				$this->assertTrue(
-					$manager->canSerializeToFile($derivedFilename, $data),
+					$manager->isSerializableToFile($derivedFilename, $data),
 					$label . ' - ca re-serialize data to file');
 
 				$manager->serializeToFile($derivedFilename, $data);
@@ -182,7 +178,7 @@ final class DataSerializationManagerTest extends \PHPUnit\Framework\TestCase
 
 	public function testFileExtensions()
 	{
-		$manager = new DataSerializationManager();
+		$manager = new SerializationManager();
 		$extensions = $manager->getFileExtensions();
 		$this->assertEquals('array',
 			TypeDescription::getName($extensions),

@@ -8,9 +8,11 @@
  */
 namespace NoreSources\Data\Serialization\Traits;
 
-use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\Data\Serialization\SerializableContentInterface;
+use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
+use NoreSources\MediaType\MediaTypeException;
+use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
-use NoreSources\MediaType\MediaTypeMatcher;
 
 /**
  * Generic implementation of the basic methods of StreamSerializerInterface
@@ -18,47 +20,28 @@ use NoreSources\MediaType\MediaTypeMatcher;
 trait StreamSerializerBaseTrait
 {
 
-	/**
-	 *
-	 * @return MediaTypeInterface[]
-	 */
-	public function getSerializableMediaTypes()
-	{
-		if ($this instanceof MediaTypeListInterface)
-			return $this->getMediaTypes();
-		return [];
-	}
-
-	/**
-	 *
-	 * @param MediaTypeInterface $mediaType
-	 *        	Media type to check
-	 * @return void|boolean TRUE if media type match with at least one of the supported media range
-	 *         or if the structured syntax suffix of the media type is present in at least one of
-	 *         the supported media range
-	 */
-	public function isMediaTypeSerializable(
-		MediaTypeInterface $mediaType)
-	{
-		$list = $this->getSerializableMediaTypes();
-		if (!empty($syntax))
-		{
-			foreach ($list as $mediaRange)
-			{
-				$s = $mediaRange->getStructuredSyntax(true);
-				if ($syntax == $s)
-					return true;
-			}
-		}
-		$matcher = new MediaTypeMatcher($mediaType);
-		return $matcher->match($list);
-	}
-
-	public function isSerializable($data,
+	public function isSerializableToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
-		if ($mediaType)
+		if (($this instanceof SerializableContentInterface) &&
+			!$this->isContentSerializable($data))
+			return false;
+
+		if (!$mediaType)
+		{
+			try
+			{
+				$factory = MediaTypeFactory::getInstance();
+				$mediaType = $factory->createFromMedia($stream);
+			}
+			catch (MediaTypeException $e)
+			{}
+		}
+
+		if ($mediaType &&
+			($this instanceof SerializableMediaTypeInterface))
 			return $this->isMediaTypeSerializable($mediaType);
+
 		return true;
 	}
 }

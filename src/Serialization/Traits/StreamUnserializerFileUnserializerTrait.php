@@ -8,24 +8,15 @@
  */
 namespace NoreSources\Data\Serialization\Traits;
 
-use NoreSources\Data\Serialization\DataSerializationException;
+use NoreSources\Data\Serialization\SerializationException;
 use NoreSources\MediaType\MediaTypeInterface;
 
 /**
- * Use the new StreamUnserializerInterface to implement the legacy FileUnserializerInterface
+ * Implements FileUnserializerInterface methods using StreamUnserializerInterface
  */
 trait StreamUnserializerFileUnserializerTrait
 {
 	use FileUnserializerTrait;
-
-	/**
-	 *
-	 * @deprecated Use $this->getUnserializableMediaTypes
-	 */
-	public function getUnserializableFileMediaTypes()
-	{
-		return $this->getUnserializableMediaTypes();
-	}
 
 	public function unserializeFromFile($filename,
 		MediaTypeInterface $mediaType = null)
@@ -34,7 +25,7 @@ trait StreamUnserializerFileUnserializerTrait
 		if ($stream === false)
 		{
 			$error = \error_get_last();
-			throw new DataSerializationException($error['message']);
+			throw new SerializationException($error['message']);
 		}
 
 		$data = null;

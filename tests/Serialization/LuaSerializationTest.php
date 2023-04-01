@@ -50,7 +50,7 @@ final class LuaSerializationTest extends SerializerTestCaseBase
 		{
 			$filename = $directory . '/' . $key . '.data.lua';
 
-			$this->assertTrue($serializer->canSerializeData($data),
+			$this->assertTrue($serializer->isSerializableTo($data),
 				'Can serialize ' . TypeDescription::getName($data) . ' ' .
 				$key);
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 use NoreSources\MediaType\MediaTypeFactory;
-use NoreSources\Data\Serialization\DataSerializationManager;
+use NoreSources\Data\Serialization\SerializationManager;
 use NoreSources\Data\Serialization\Traits\FileMediaTypeNormalizerTrait;
 use NoreSources\Type\TypeDescription;
 
@@ -80,7 +80,7 @@ class App
 			}
 		}
 
-		$manager = new DataSerializationManager();
+		$manager = new SerializationManager();
 		if (empty($to) ||
 			!$manager->canSerializeToFile($output, null, $to))
 			$to = MediaTypeFactory::getInstance()->createFromString('application/json');

@@ -8,32 +8,27 @@
  */
 namespace NoreSources\Data\Serialization\Traits;
 
-use NoreSources\Data\Serialization\DataSerializationException;
+use NoreSources\Data\Serialization\SerializationException;
+use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
+use NoreSources\Data\Unserialization\UnserializableContentInterface;
 use NoreSources\MediaType\MediaTypeInterface;
 
 /**
- * Implementation of legacy DataUnserializerInterface that uses the new StreamUnserializer API
+ * Implementation of DataUnserializerInterface that uses the new StreamUnserializer API
  */
 trait StreamUnserializerDataUnserializerTrait
 {
 
-	/**
-	 *
-	 * @deprecated Use $this->getUnserializableMediaTypes
-	 */
-	public function getUnserializableDataMediaTypes()
-	{
-		return $this->getUnserializableMediaTypes();
-	}
-
-	/**
-	 *
-	 * @deprecated Use isUnserializable($data, $mediaType);
-	 */
-	public function canUnserializeData($data,
+	public function isUnserializableFrom($data,
 		MediaTypeInterface $mediaType = null)
 	{
-		return $this->isUnserializable($data, $mediaType);
+		if ($mediaType &&
+			($this instanceof UnserializableMediaTypeInterface) &&
+			!$this->isMediaTypeUnserializable($mediaType))
+			return false;
+		if ($this instanceof UnserializableContentInterface)
+			return $this->isContentUnserializable($mediaType);
+		return true;
 	}
 
 	public function unserializeData($data,
@@ -43,11 +38,11 @@ trait StreamUnserializerDataUnserializerTrait
 		if ($mediaType)
 			$mt = \strval($mediaType);
 
-		$stream = @\fopen('data://' . $mt . ',' . $data, 'r');
+		$stream = @\fopen('data://' . $mt . ',' . \urlencode($data), 'r');
 		if ($stream === false)
 		{
 			$error = error_get_last();
-			throw new DataSerializationException(
+			throw new SerializationException(
 				'Failed to create data stream: ' . $error['message']);
 		}
 		try

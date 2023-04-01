@@ -9,10 +9,12 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
-use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerBaseTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\UnserializableMediaTypeTrait;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
@@ -24,11 +26,15 @@ use NoreSources\Type\TypeConversion;
  *
  * @see https://datatracker.ietf.org/doc/html/rfc3986
  */
-class UrlEncodedSerializer implements DataUnserializerInterface,
+class UrlEncodedSerializer implements UnserializableMediaTypeInterface,
+	SerializableMediaTypeInterface, DataUnserializerInterface,
 	DataSerializerInterface, StreamSerializerInterface,
 	StreamUnserializerInterface, MediaTypeListInterface
 {
 	use MediaTypeListTrait;
+
+	use UnserializableMediaTypeTrait;
+	use SerializableMediaTypeTrait;
 
 	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;

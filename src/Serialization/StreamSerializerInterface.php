@@ -14,26 +14,22 @@ interface StreamSerializerInterface
 {
 
 	/**
-	 * Get the list of supported serialisation format supported by this serializer.
-	 *
-	 * @return MediaTYpe[] List of media types
-	 */
-	function getSerializableMediaTypes();
-
-	/**
 	 * Indicates if the given data can be serialized
 	 *
 	 * Implementations MAY check check the data type.
 	 * Implementations MUST return FALSE if the provided media type is not compatible with the
 	 * serialier supported media types.
 	 *
+	 * @param resource $stream
+	 *        	T.arget stream
 	 * @param mixed $data
-	 *        	Data to check
+	 *        	Input data.
 	 * @param MediaTypeInterface|NULL $mediaType
 	 *        	Target media type
 	 * @return TRUE if the given data can be serialized to the given data type
 	 */
-	function isSerializable($data, MediaTypeInterface $mediaType = null);
+	function isSerializableToStream($stream, $data,
+		MediaTypeInterface $mediaType = null);
 
 	/**
 	 * Serialize data to the given stream

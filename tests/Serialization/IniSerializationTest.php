@@ -47,7 +47,7 @@ final class IniSerializationTest extends SerializerTestCaseBase
 		{
 			$filename = $directory . '/' . $name . '.ini';
 
-			$this->assertTrue($ini->canUnserializeFromFile($filename),
+			$this->assertTrue($ini->isUnserializableFromFile($filename),
 				'Can unserialize ' .
 				\pathinfo($filename, PATHINFO_FILENAME));
 

@@ -109,7 +109,7 @@ final class JsonSerializationTest extends SerializerTestCaseBase
 			$actual = \call_user_func_array(
 				[
 					$serializer,
-					'canUnserializeFromFile'
+					'isUnserializableFromFile'
 				], $args);
 			$this->assertEquals($expected, $actual, $label);
 		}

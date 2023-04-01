@@ -14,13 +14,6 @@ interface StreamUnserializerInterface
 {
 
 	/**
-	 * Get the list of supported deserialisation format supported by this serializer.
-	 *
-	 * @return MediaTYpe[] List of media types
-	 */
-	function getUnserializableMediaTypes();
-
-	/**
 	 * Indicates if the given stream can be deserialized by this deserializer.
 	 *
 	 * @param resource|NULL $stream
@@ -31,7 +24,7 @@ interface StreamUnserializerInterface
 	 * @return TRUE if the given data can be deserialized to the given data type
 	 *
 	 */
-	function isUnserializable($stream,
+	function isUnserializableFromStream($stream,
 		MediaTypeInterface $mediaType = null);
 
 	/**

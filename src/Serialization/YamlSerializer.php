@@ -8,25 +8,29 @@
  */
 namespace NoreSources\Data\Serialization;
 
+use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\UnserializableMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
 use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
+use NoreSources\MediaType\MediaTypeMatcher;
 
 /**
  * YAML content and file (de)serialization.
  *
  * Require the yaml extension
  */
-class YamlSerializer implements DataUnserializerInterface,
+class YamlSerializer implements UnserializableMediaTypeInterface,
+	SerializableMediaTypeInterface, DataUnserializerInterface,
 	DataSerializerInterface, FileSerializerInterface,
 	FileUnserializerInterface, StreamSerializerInterface,
 	StreamUnserializerInterface, FileExtensionListInterface,
@@ -34,6 +38,9 @@ class YamlSerializer implements DataUnserializerInterface,
 {
 	use MediaTypeListTrait;
 	use FileExtensionListTrait;
+
+	use UnserializableMediaTypeTrait;
+	use SerializableMediaTypeTrait;
 
 	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;
@@ -61,7 +68,13 @@ class YamlSerializer implements DataUnserializerInterface,
 	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
-		\fwrite($stream, $this->serializeData($data, $mediaType));
+		$result = @\fwrite($stream,
+			$this->serializeData($data, $mediaType));
+		if ($result === false)
+		{
+			$error = \error_get_last();
+			throw new SerializationException($error['message']);
+		}
 	}
 
 	public function serializeToFile($filename, $data,
@@ -75,7 +88,9 @@ class YamlSerializer implements DataUnserializerInterface,
 			if (\strcasecmp($charset, 'utf-8') == 0)
 				$encoding = YAML_UTF8_ENCODING;
 		}
-		return \yaml_emit_file($filename, $data, $encoding);
+		$result = @\yaml_emit_file($filename, $data, $encoding);
+		if ($result !== true)
+			throw new SerializationException('Failed to emit YAML file');
 	}
 
 	public function unserializeFromStream($stream,
@@ -111,12 +126,21 @@ class YamlSerializer implements DataUnserializerInterface,
 			MediaTypeFactory::FROM_EXTENSION_FIRST;
 	}
 
-	public function matchMediaType(MediaTypeInterface $mediaType)
+	public function isMediaTypeSerializable(
+		MediaTypeInterface $mediaType)
 	{
-		$syntax = $mediaType->getStructuredSyntax();
-		if (\strcasecmp($syntax, 'yaml') == 0)
+		$syntax = $mediaType->getStructuredSyntax(false);
+		if (\strcasecmp($syntax, 'yaml') === 0)
 			return true;
-		return $this->matchMediaTypeList($mediaType);
+		$list = $this->getSerializableMediaRanges();
+		$matcher = new MediaTypeMatcher($mediaType);
+		return $matcher->match($list);
+	}
+
+	public function isMediaTypeUnserializable(
+		MediaTypeInterface $mediaType)
+	{
+		return $this->isMediaTypeSerializable($mediaType);
 	}
 
 	public function buildMediaTypeList()

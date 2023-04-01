@@ -1,9 +1,9 @@
+---
 string: Hello world
-float: 3.14159
+float: 3.141590
 integer: 42
-true: true
-false: false
-null: null
+1: true
+"": ~
 object:
   one: 1
   two: 2
@@ -12,3 +12,4 @@ array:
 - 1
 - 2
 - 3
+...

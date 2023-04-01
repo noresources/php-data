@@ -9,6 +9,7 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Data\Serialization\Traits\FileUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\UnserializableMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
 use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
@@ -19,21 +20,19 @@ use NoreSources\MediaType\MediaTypeInterface;
  * Load data from a PHP "module" file that returns data.
  *
  * For security reason, this serializer will not be available by default
- * with the DataSerializationManager.
+ * with the SerializationManager.
  *
  * ATTENTION Never use this with untrusted files.
  */
-class PhpFileUnserializer implements FileUnserializerInterface,
-	FileExtensionListInterface
+class PhpFileUnserializer implements UnserializableMediaTypeInterface,
+	FileUnserializerInterface, FileExtensionListInterface
 {
 	use MediaTypeListTrait;
-	use FileUnserializerTrait;
 	use FileExtensionListTrait;
 
-	public function getUnserializableFileMediaTypes()
-	{
-		return $this->getMediaTypes();
-	}
+	use UnserializableMediaTypeTrait;
+
+	use FileUnserializerTrait;
 
 	public function unserializeFromFile($filename,
 		MediaTypeInterface $mediaType = null)
@@ -48,7 +47,8 @@ class PhpFileUnserializer implements FileUnserializerInterface,
 	protected function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::getInstance()->createFromString('text/x-php')
+			MediaTypeFactory::getInstance()->createFromString(
+				'text/x-php')
 		];
 	}
 
@@ -69,8 +69,7 @@ class PhpFileUnserializerSandbox
 		$error = null;
 
 		if (!\file_exists($filename))
-			throw new DataSerializationException(
-				$filename . ' not found');
+			throw new SerializationException($filename . ' not found');
 		$previous = set_error_handler(
 			function ($errno, $message, $file, $line) use (&$error) {
 				if (!(error_reporting() & $errno))
@@ -89,7 +88,7 @@ class PhpFileUnserializerSandbox
 		\set_error_handler($previous);
 
 		if ($error)
-			throw new DataSerializationException($error);
+			throw new SerializationException($error);
 		return $data;
 	}
 }

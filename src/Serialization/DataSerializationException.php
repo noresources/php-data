@@ -1,15 +1,18 @@
 <?php
+
 /**
- * Copyright © 2021 by Renaud Guillard (dev@nore.fr)
+ * Copyright © 2023 by Renaud Guillard (dev@nore.fr)
  * Distributed under the terms of the MIT License, see LICENSE
  *
- * @package Data
+ * #package Data
  */
 namespace NoreSources\Data\Serialization;
 
 /**
- * Exception raised on (de)serialization failures
+ *
+ * @deprecated Renamed to SerializationException.
+ *
  */
-class DataSerializationException extends \RuntimeException
+class DataSerializationException extends SerializationException
 {
 }

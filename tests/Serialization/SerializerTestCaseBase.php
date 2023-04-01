@@ -92,7 +92,7 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 		$stream = null;
 		if ($serializer instanceof FileUnserializerInterface)
 		{
-			$actual = $serializer->canUnserializeFromFile($filename,
+			$actual = $serializer->isUnserializableFromFile($filename,
 				$mediaType);
 
 			$this->assertEquals($canUnserialize, $actual,
@@ -103,7 +103,7 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 		if ($serializer instanceof StreamUnserializerInterface)
 		{
 			$stream = \fopen($filename, 'rb');
-			$actual = $serializer->isUnserializable($stream, $mediaType);
+			$actual = $serializer->isUnserializableFromStream($stream, $mediaType);
 			$this->assertEquals($canUnserialize, $actual,
 				'Can unserialize stream' . $mediaTypeMessagePart);
 		}

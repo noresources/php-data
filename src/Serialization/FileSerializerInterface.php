@@ -16,13 +16,8 @@ interface FileSerializerInterface
 {
 
 	/**
-	 * Get the list of file type supported by this serializer.
-	 *
-	 * @return MediaTypeInterface[]
-	 */
-	function getSerializableFileMediaTypes();
-
-	/**
+	 * Indicates if the class can serialize the given content to the target file format given by
+	 * file name or media type.
 	 *
 	 * @param string $filename
 	 *        	Output file path
@@ -32,7 +27,7 @@ interface FileSerializerInterface
 	 *        	Target content type
 	 *
 	 */
-	function canSerializeToFile($filename, $data,
+	function isSerializableToFile($filename, $data,
 		MediaTypeInterface $mediaType = null);
 
 	/**

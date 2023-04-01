@@ -9,12 +9,14 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
-use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerBaseTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\UnserializableMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
@@ -26,7 +28,8 @@ use NoreSources\Type\TypeConversion;
 /**
  * Plain text serialization
  */
-class PlainTextSerializer implements DataUnserializerInterface,
+class PlainTextSerializer implements UnserializableMediaTypeInterface,
+	SerializableMediaTypeInterface, DataUnserializerInterface,
 	DataSerializerInterface, FileUnserializerInterface,
 	FileSerializerInterface, StreamSerializerInterface,
 	StreamUnserializerInterface, FileExtensionListInterface,
@@ -34,6 +37,9 @@ class PlainTextSerializer implements DataUnserializerInterface,
 {
 	use MediaTypeListTrait;
 	use FileExtensionListTrait;
+
+	use UnserializableMediaTypeTrait;
+	use SerializableMediaTypeTrait;
 
 	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;
@@ -96,6 +102,11 @@ class PlainTextSerializer implements DataUnserializerInterface,
 		}
 	}
 
+	public function getFileStreamFooter()
+	{
+		return "\n";
+	}
+
 	protected function recursiveSerializeData(&$stream, &$count,
 		&$visited, $data, MediaTypeInterface $mediaType = null)
 	{
@@ -122,7 +133,8 @@ class PlainTextSerializer implements DataUnserializerInterface,
 	protected function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::getInstance()->createFromString('text/plain')
+			MediaTypeFactory::getInstance()->createFromString(
+				'text/plain')
 		];
 	}
 

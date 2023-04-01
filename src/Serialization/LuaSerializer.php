@@ -9,9 +9,10 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
-use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
@@ -23,11 +24,13 @@ use NoreSources\Type\TypeConversion;
  *
  * @see https://datatracker.ietf.org/doc/html/rfc3986
  */
-class LuaSerializer implements DataSerializerInterface,
-	FileSerializerInterface, StreamSerializerInterface,
-	MediaTypeListInterface
+class LuaSerializer implements SerializableMediaTypeInterface,
+	DataSerializerInterface, FileSerializerInterface,
+	StreamSerializerInterface, MediaTypeListInterface
 {
 	use MediaTypeListTrait;
+
+	use SerializableMediaTypeTrait;
 
 	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;
@@ -154,7 +157,8 @@ class LuaSerializer implements DataSerializerInterface,
 	public function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::getInstance()->createFromString('text/x-lua')
+			MediaTypeFactory::getInstance()->createFromString(
+				'text/x-lua')
 		];
 	}
 

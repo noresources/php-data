@@ -8,7 +8,8 @@
  */
 namespace NoreSources\Data\Serialization\Traits;
 
-use NoreSources\Data\Serialization\DataSerializationException;
+use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
+use NoreSources\Data\Serialization\SerializationException;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeException;
@@ -16,22 +17,17 @@ use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
 
 /**
- * Implements DataUnserializerInterface using
- * StreamSerializerInterface API
+ * Implementation of FileSerializerInterface using StreamSerializerInterface methods
  */
 trait StreamSerializerFileSerializerTrait
 {
 
-	/**
-	 *
-	 * @deprecated Use $this->getSerializableMediaTypes
-	 */
-	public function getSerializableFileMediaTypes()
+	public function getFileStreamFooter()
 	{
-		return $this->getSerializableMediaTypes();
+		return null;
 	}
 
-	public function canSerializeToFile($filename, $data,
+	public function isSerializableToFile($filename, $data,
 		MediaTypeInterface $mediaType = null)
 	{
 		$testExtension = $this instanceof FileExtensionListInterface &&
@@ -42,7 +38,8 @@ trait StreamSerializerFileSerializerTrait
 				\pathinfo($filename, PATHINFO_EXTENSION));
 		}
 
-		if ($this instanceof MediaTypeListInterface)
+		if (($this instanceof MediaTypeListInterface) ||
+			($this instanceof SerializableMediaTypeInterface))
 		{
 			if (!$mediaType)
 			{
@@ -56,7 +53,12 @@ trait StreamSerializerFileSerializerTrait
 			}
 
 			if ($mediaType)
-				return $this->matchMediaType($mediaType);
+			{
+				if ($this instanceof SerializableMediaTypeInterface)
+					return $this->isMediaTypeSerializable($mediaType);
+				elseif ($this instanceof MediaTypeListInterface)
+					return $this->matchMediaType($mediaType);
+			}
 		}
 
 		if ($testExtension)
@@ -74,7 +76,7 @@ trait StreamSerializerFileSerializerTrait
 		if ($stream === false)
 		{
 			$error = \error_get_last();
-			throw new DataSerializationException($error['message']);
+			throw new SerializationException($error['message']);
 		}
 
 		@\flock($stream, LOCK_EX);
@@ -82,6 +84,9 @@ trait StreamSerializerFileSerializerTrait
 		try
 		{
 			$this->serializeToStream($stream, $data, $mediaType);
+			$foorter = $this->getFileStreamFooter();
+			if (!empty($foorter))
+				@\fwrite($stream, $foorter);
 		}
 		catch (\Exception $e)
 		{

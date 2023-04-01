@@ -8,9 +8,10 @@
  */
 namespace NoreSources\Data\Serialization;
 
-use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
-use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamUnserializerBaseTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerDataUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\StreamUnserializerFileUnserializerTrait;
+use NoreSources\Data\Serialization\Traits\UnserializableMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
@@ -21,12 +22,15 @@ use NoreSources\MediaType\MediaTypeInterface;
 /**
  * INI deserialization.
  */
-class IniSerializer implements DataUnserializerInterface,
-	FileUnserializerInterface, StreamUnserializerInterface,
-	MediaTypeListInterface, FileExtensionListInterface
+class IniSerializer implements UnserializableMediaTypeInterface,
+	DataUnserializerInterface, FileUnserializerInterface,
+	StreamUnserializerInterface, MediaTypeListInterface,
+	FileExtensionListInterface
 {
 	use MediaTypeListTrait;
 	use FileExtensionListTrait;
+
+	use UnserializableMediaTypeTrait;
 
 	use StreamUnserializerBaseTrait;
 	use StreamUnserializerDataUnserializerTrait;
@@ -42,7 +46,7 @@ class IniSerializer implements DataUnserializerInterface,
 		if ($data === false)
 		{
 			$error = \error_get_last();
-			throw new DataSerializationException($error['message']);
+			throw new SerializationException($error['message']);
 		}
 		return $data;
 	}
@@ -54,7 +58,7 @@ class IniSerializer implements DataUnserializerInterface,
 		if ($data === false)
 		{
 			$error = \error_get_last();
-			throw new DataSerializationException($error['message']);
+			throw new SerializationException($error['message']);
 		}
 		return $data;
 	}
@@ -62,14 +66,15 @@ class IniSerializer implements DataUnserializerInterface,
 	public function unserializeFromStream($stream,
 		MediaTypeInterface $mediaType = null)
 	{
-		return $this->canUnserializeData(\stream_get_contents($stream),
+		return $this->isUnserializableFrom(\stream_get_contents($stream),
 			$mediaType);
 	}
 
 	public function buildMediaTypeList()
 	{
 		return [
-			MediaTypeFactory::getInstance()->createFromString('text/x-ini'),
+			MediaTypeFactory::getInstance()->createFromString(
+				'text/x-ini'),
 			MediaTypeFactory::getInstance()->createFromString(
 				'application/x-wine-extension-ini')
 		];

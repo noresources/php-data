@@ -8,6 +8,8 @@
  */
 namespace NoreSources\Data\Serialization\Traits;
 
+use NoreSources\Data\Serialization\SerializableContentInterface;
+use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
 use NoreSources\MediaType\MediaTypeInterface;
 
 /**
@@ -17,23 +19,16 @@ use NoreSources\MediaType\MediaTypeInterface;
 trait StreamSerializerDataSerializerTrait
 {
 
-	/**
-	 *
-	 * @deprecated Use $this->getSerializableMediaTypes
-	 */
-	public function getSerializableDataMediaTypes()
-	{
-		return $this->getSerializableMediaTypes();
-	}
-
-	/**
-	 *
-	 * @deprecated Use isSerializable($data, $mediaType);
-	 */
-	public function canSerializeData($data,
+	public function isSerializableTo($data,
 		MediaTypeInterface $mediaType = null)
 	{
-		return $this->isSerializable($data, $mediaType);
+		if ($mediaType &&
+			($this instanceof SerializableMediaTypeInterface) &&
+			!$this->isMediaTypeSerializable($mediaType))
+			return false;
+		if ($this instanceof SerializableContentInterface)
+			return $this->isContentSerializable($mediaType);
+		return true;
 	}
 
 	public function serializeData($data,

@@ -24,7 +24,7 @@ final class CsvSerializationTest extends SerializerTestCaseBase
 
 	const CLASS_NAME = CsvSerializer::class;
 
-	const MEDIA_TYPE = 'text/csv';
+	const MEDIA_TYPE = 'text/csv; flatten=yes';
 
 	const FILE_EXTENSION = 'csv';
 
@@ -108,7 +108,7 @@ final class CsvSerializationTest extends SerializerTestCaseBase
 
 		$serializer = $this->createSerializer();
 
-		$valid = $serializer->canSerializeData($input);
+		$valid = $serializer->isSerializableTo($input);
 		if (!$valid)
 		{
 			$this->assertFalse($valid);
@@ -231,7 +231,7 @@ final class CsvSerializationTest extends SerializerTestCaseBase
 			$valid = Container::keyValue($test, 'valid', true);
 
 			$this->assertEquals($valid,
-				$serializer->canSerializeData($input, $mediaType),
+				$serializer->isSerializableTo($input, $mediaType),
 				'Can serialize ' . $label);
 
 			if (!$valid)
