@@ -21,7 +21,8 @@
 	}, 
 	"require": {
 		"php": ">=5.6", 
-		"noresources/ns-php-mediatype": "^1.6"
+		"noresources/ns-php-mediatype": "^1.6", 
+		"symfony/console": "^4.4"
 	}, 
 	"suggest": {
 		"ext-json": "*", 
@@ -47,6 +48,6 @@
 		}
 	}, 
 	"bin": [
-		"bin/data-convert.php"
+		"bin/ns-php-data"
 	]
 }
