@@ -39,8 +39,7 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 			__DIR__ . '/..');
 	}
 
-	protected function assertImplements($list, $serializer,
-		$message = null)
+	public function assertImplements($list, $serializer, $message = null)
 	{
 		if (empty($message))
 			$message = TypeDescription::getLocalName($serializer) .
@@ -51,7 +50,7 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 		}
 	}
 
-	protected function assertTypeSerialization($typename,
+	public function assertTypeSerialization($typename,
 		$options = array())
 	{
 		/**
@@ -64,12 +63,19 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 			$mediaType = MediaTypeFactory::getInstance()->createFromString(
 				$mediaType);
 
-		$canUnserialize = Container::keyValue($options, 'canUnserialize',
-			true);
+		$method = Container::keyValue($options, 'method', __METHOD__);
+		$suffix = Container::keyValue($options, 'suffix', $typename);
+
+		$isUnserializable = Container::keyValue($options,
+			'isUnserializable', true);
 		$extension = Container::keyValue($options, 'extension');
 
 		if (!$serializer)
 			$serializer = static::createSerializer();
+
+		$serializeName = TypeDescription::getLocalName($serializer);
+		$serializeShortName = \preg_replace('/Serializer$/', '',
+			$serializeName);
 
 		if (!$extension)
 		{
@@ -81,8 +87,9 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 		}
 
 		$filename = __DIR__ . '/../data/' . $typename . '/' .
-			TypeDescription::getLocalName($serializer) . '.' . $extension;
-		$this->assertFileExists($filename);
+			$serializeName . '.' . $extension;
+		$this->assertFileExists($filename,
+			'Reference file for ' . $serializeShortName . ' exists');
 
 		$mediaTypeMessagePart = (($mediaType) ? ' with ' .
 			$mediaType->jsonSerialize() : ' with undefined') .
@@ -95,20 +102,22 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 			$actual = $serializer->isUnserializableFromFile($filename,
 				$mediaType);
 
-			$this->assertEquals($canUnserialize, $actual,
-				'Can unserialize file ' . \basename($filename) .
-				$mediaTypeMessagePart);
+			$this->assertEquals($isUnserializable, $actual,
+				$serializeName . ' can unserialize file ' .
+				\basename($filename) . $mediaTypeMessagePart);
 		}
 
 		if ($serializer instanceof StreamUnserializerInterface)
 		{
 			$stream = \fopen($filename, 'rb');
-			$actual = $serializer->isUnserializableFromStream($stream, $mediaType);
-			$this->assertEquals($canUnserialize, $actual,
-				'Can unserialize stream' . $mediaTypeMessagePart);
+			$actual = $serializer->isUnserializableFromStream($stream,
+				$mediaType);
+			$this->assertEquals($isUnserializable, $actual,
+				$serializeName . ' can unserialize stream' .
+				$mediaTypeMessagePart);
 		}
 
-		if (!$canUnserialize)
+		if (!$isUnserializable)
 		{
 			if ($stream)
 				\fclose($stream);
@@ -138,8 +147,9 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 				$actual = $serializer->unserializeFromStream($stream,
 					$mediaType);
 				$this->assertEquals($expected, $actual,
-					'Unserializer data from file ' . \basename(
-						$filename) . $mediaTypeMessagePart);
+					$serializeName . ' unserialize ' . $typename .
+					' data from file ' . \basename($filename) .
+					$mediaTypeMessagePart);
 			}
 
 			if ($serializer instanceof StreamUnserializerInterface)
@@ -156,13 +166,32 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 					$actual = $e->getMessage();
 				}
 				$this->assertEquals($expected, $actual,
-					'Unserialize data from stream' .
+					$serializeName . ' unserialize data from stream' .
 					$mediaTypeMessagePart);
 			}
 		}
 
 		if ($stream)
 			\fclose($stream);
+
+		if ($hasExpected)
+		{
+			$derived = $this->getDerivedFilename($method, $suffix,
+				$extension, $typename);
+			$data = $expected;
+			if ($serializer instanceof FileSerializerInterface)
+			{
+				$this->assertTrue(
+					$serializer->isSerializableToFile($derived, $data,
+						$mediaType),
+					$serializeName . ' can serialize file ' .
+					$mediaTypeMessagePart);
+				$serializer->serializeToFile($derived, $data, $mediaType);
+				$this->assertFileEquals($filename, $derived,
+					'Compare ' . $serializeName .
+					' serialized file content with reference');
+			}
+		}
 	}
 
 	/**

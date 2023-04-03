@@ -12,8 +12,10 @@ use NoreSources\Data\Serialization\DataUnserializerInterface;
 use NoreSources\Data\Serialization\FileSerializerInterface;
 use NoreSources\Data\Serialization\FileUnserializerInterface;
 use NoreSources\Data\Serialization\PlainTextSerializer;
+use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
+use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\Type\TypeDescription;
@@ -31,6 +33,8 @@ final class PlainTextSerializationTest extends SerializerTestCaseBase
 		$serializer = $this->createSerializer();
 		$this->assertImplements(
 			[
+				UnserializableMediaTypeInterface::class,
+				SerializableMediaTypeInterface::class,
 				// Helpers
 				MediaTypeListInterface::class,
 				FileExtensionListInterface::class,
@@ -58,7 +62,7 @@ final class PlainTextSerializationTest extends SerializerTestCaseBase
 			],
 			'bad mediatype' => [
 				'mediaType' => 'application/json',
-				'canUnserialize' => false
+				'isUnserializable' => false
 			]
 		];
 

@@ -9,8 +9,10 @@ namespace NoreSources\Data\TestCase\Serialization;
 
 use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\DataUnserializerInterface;
+use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
+use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
 use NoreSources\Data\Serialization\UrlEncodedSerializer;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
@@ -51,6 +53,8 @@ final class UrlEncodedSerializationTest extends SerializerTestCaseBase
 			'application/x-www-form-urlencoded');
 
 		foreach ([
+			UnserializableMediaTypeInterface::class,
+			SerializableMediaTypeInterface::class,
 			'Text' => 'text',
 			'A text with space' => 'A text with space',
 			'Key-values' => [
@@ -68,7 +72,8 @@ final class UrlEncodedSerializationTest extends SerializerTestCaseBase
 			$serialized = $serializer->serializeData($value);
 
 			$this->assertTrue(
-				$serializer->isUnserializableFrom($serialized, $mediaType),
+				$serializer->isUnserializableFrom($serialized,
+					$mediaType),
 				'Can unserialize ' . $label . ' ' .
 				TypeDescription::getName($serialized) .
 				' with media type');

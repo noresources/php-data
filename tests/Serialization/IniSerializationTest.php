@@ -11,6 +11,7 @@ use NoreSources\Data\Serialization\DataUnserializerInterface;
 use NoreSources\Data\Serialization\FileUnserializerInterface;
 use NoreSources\Data\Serialization\IniSerializer;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
+use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 
@@ -27,6 +28,7 @@ final class IniSerializationTest extends SerializerTestCaseBase
 		$serializer = $this->createSerializer();
 		$this->assertImplements(
 			[
+				UnserializableMediaTypeInterface::class,
 				MediaTypeListInterface::class,
 				FileExtensionListInterface::class,
 
