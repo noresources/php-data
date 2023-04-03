@@ -10,6 +10,7 @@ namespace NoreSources\Data\TestCase\Serialization;
 use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\FileSerializerInterface;
 use NoreSources\Data\Serialization\LuaSerializer;
+use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
@@ -72,6 +73,7 @@ final class LuaSerializationTest extends SerializerTestCaseBase
 		$serializer = $this->createSerializer();
 		$this->assertImplements(
 			[
+				SerializableMediaTypeInterface::class,
 				MediaTypeListInterface::class,
 				StreamSerializerInterface::class,
 				DataSerializerInterface::class,

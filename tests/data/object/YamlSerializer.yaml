@@ -1,6 +1,6 @@
 ---
 string: Hello world
-float: 3.141590
+float: 3.14159
 integer: 42
 1: true
 "": ~

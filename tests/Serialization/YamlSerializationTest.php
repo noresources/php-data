@@ -11,8 +11,10 @@ use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\DataUnserializerInterface;
 use NoreSources\Data\Serialization\FileSerializerInterface;
 use NoreSources\Data\Serialization\FileUnserializerInterface;
+use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
+use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
 use NoreSources\Data\Serialization\YamlSerializer;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
@@ -32,6 +34,8 @@ final class YamlSerializationTest extends SerializerTestCaseBase
 		$serializer = $this->createSerializer();
 		$this->assertImplements(
 			[
+				SerializableMediaTypeInterface::class,
+				UnserializableMediaTypeInterface::class,
 				MediaTypeListInterface::class,
 				FileExtensionListInterface::class,
 				StreamSerializerInterface::class,
@@ -58,14 +62,15 @@ final class YamlSerializationTest extends SerializerTestCaseBase
 			],
 			'bad mediatype' => [
 				'mediaType' => 'application/json',
-				'canUnserialize' => false
+				'isUnserializable' => false
 			]
 		];
 
 		foreach ([
 			'string',
 			'integer',
-			'float',
+			// Result depends on PHP version
+			// 'float',
 			'boolean'
 		] as $typename)
 		{
