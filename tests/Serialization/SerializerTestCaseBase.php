@@ -186,6 +186,10 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 						$mediaType),
 					$serializeName . ' can serialize file ' .
 					$mediaTypeMessagePart);
+
+				$this->assertCreateFileDirectoryPath($derived,
+					'Create derived file directory');
+
 				$serializer->serializeToFile($derived, $data, $mediaType);
 				$this->assertFileEquals($filename, $derived,
 					'Compare ' . $serializeName .
