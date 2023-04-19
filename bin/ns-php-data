@@ -1,12 +1,12 @@
 #!/usr/bin/env php
 <?php
 
-use NoreSources\Data\Console\DataConsole;
+use NoreSources\Data\Console\DataApplication;
 
 if (isset($GLOBALS['_composer_autoload_path']))
 	require_once ($GLOBALS['_composer_autoload_path']);
 else
 	require_once (__DIR__ . '/../vendor/autoload.php');
 	
-	$app = new DataConsole ();
+	$app = new DataApplication ();
 	$app->run ();

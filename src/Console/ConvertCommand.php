@@ -8,27 +8,30 @@
  */
 namespace NoreSources\Data\Console;
 
-use Composer\InstalledVersions;
 use NoreSources\Container\Container;
-use NoreSources\Data\Serialization\DataSerializationManager;
 use NoreSources\MediaType\MediaTypeException;
 use NoreSources\MediaType\MediaTypeFactory;
-use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class DataConsole extends Application
+class ConvertCommand extends Command
 {
 
-	public function __construct()
+	/**
+	 * Command default name
+	 *
+	 * @var string
+	 */
+	public static $defaultName = 'convert';
+
+	protected function configure()
 	{
-		parent::__construct();
-		$this->register('convert')
-			->addArgument('input', InputArgument::OPTIONAL, 'Input file',
-			'php://stdin')
+		$this->addArgument('input', InputArgument::OPTIONAL,
+			'Input file', 'php://stdin')
 			->addArgument('output', InputArgument::OPTIONAL,
 			'Output file', 'php://stdout')
 			->addOption('from', null, InputOption::VALUE_REQUIRED,
@@ -36,14 +39,10 @@ class DataConsole extends Application
 			->addOption('to', null, InputOption::VALUE_REQUIRED,
 			'Output media type')
 			->addOption('auto-register-serializers', 'a', null,
-			'Auto register (de)serializers based on composer package descriptions')
-			->setCode([
-			$this,
-			'convert'
-		]);
+			'Auto register (de)serializers based on composer package descriptions');
 	}
 
-	public function convert(InputInterface $input,
+	public function execute(InputInterface $input,
 		OutputInterface $output)
 	{
 		$errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
@@ -52,7 +51,7 @@ class DataConsole extends Application
 		$inputMediaType = $input->getOption('from');
 		$outputMediaType = $input->getOption('to');
 		$mediaTypeFactory = MediaTypeFactory::getInstance();
-		$manager = $this->createSerializationManager($input, $output);
+		$manager = Utility::createSerializationManager($input, $output);
 		$inputStream = \filter_var($inputURI, FILTER_VALIDATE_URL);
 		$outputStream = \filter_Var($outputURI, FILTER_VALIDATE_URL);
 
@@ -300,69 +299,5 @@ class DataConsole extends Application
 		}
 
 		return $end(0, '');
-	}
-
-	/**
-	 *
-	 * @param InputInterface $input
-	 * @return \NoreSources\Data\Serialization\DataSerializationManager
-	 */
-	protected function createSerializationManager(InputInterface $input,
-		OutputInterface $output)
-	{
-		$manager = new DataSerializationManager();
-		if (!$input->getOption('auto-register-serializers'))
-			return $manager;
-
-		if ($output->isVerbose())
-			$output->writeln(
-				'Registering additional serializers from composer package definitions.');
-
-		$json = MediaTypeFactory::getInstance()->createFromString(
-			'application/json');
-		$depedencies = InstalledVersions::getInstalledPackages();
-		foreach ($depedencies as $packageName)
-		{
-			$packagePath = InstalledVersions::getInstallPath(
-				$packageName);
-			if (!($packagePath && \is_dir($packagePath)))
-				continue;
-
-			$packageDescription = $packagePath . '/composer.json';
-			$package = $manager->unserializeFromFile(
-				$packageDescription, $json);
-
-			$this->registerSerializerFromComposerPackage($manager,
-				$package, $output);
-		}
-
-		$package = InstalledVersions::getRootPackage();
-		$this->registerSerializerFromComposerPackage($manager, $package,
-			$output);
-
-		return $manager;
-	}
-
-	protected function registerSerializerFromComposerPackage(
-		DataSerializationManager $manager, $package,
-		OutputInterface $output)
-	{
-		if (($extra = Container::keyValue($package, 'extra')) &&
-			($section = Container::keyValue($extra, 'ns-php-data')) &&
-			($serializers = Container::keyValue($section, 'serializers')))
-		{
-			foreach ($serializers as $className)
-			{
-				if ($output->isVerbose())
-				{
-					$output->writeln(
-						' * ' . $className . ' from ' .
-						Container::keyValue($package, 'name',
-							'a package'));
-				}
-				$cls = new \ReflectionClass($className);
-				$manager->registerSerializer($cls->newInstance());
-			}
-		}
 	}
 }
