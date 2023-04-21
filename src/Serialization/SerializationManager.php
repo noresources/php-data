@@ -68,7 +68,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 */
 	public function registerSerializer($e)
 	{
-		$this->serializers[] = $e;
+		\array_unshift($this->serializers, $e);
 		foreach ($this->stacks as $classname => $stack)
 		{
 			/** @var Stack $stack */
