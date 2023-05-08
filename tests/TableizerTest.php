@@ -24,7 +24,7 @@ class TraversableEntity implements ContainerPropertyInterface
  * Copyright © 2023 by Renaud Guillard (dev@nore.fr)
  * Distributed under the terms of the MIT License, see LICENSE
  *
- * #package Data
+ * @package Data
  */
 class TableizerTest extends \PHPUnit\Framework\TestCase
 {
