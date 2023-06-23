@@ -1,12 +1,13 @@
 #!/usr/bin/env php
 <?php
 
-use NoreSources\Data\Console\DataApplication;
+use NoreSources\Data\Console\Application;
 
 if (isset($GLOBALS['_composer_autoload_path']))
 	require_once ($GLOBALS['_composer_autoload_path']);
 else
 	require_once (__DIR__ . '/../vendor/autoload.php');
-	
-	$app = new DataApplication ();
-	$app->run ();
+
+putenv ('NO_COLOR=1');	
+$app = new Application ();
+$app->run ();

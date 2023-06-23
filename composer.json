@@ -22,7 +22,7 @@
 	"require": {
 		"php": ">=7.1", 
 		"noresources/ns-php-mediatype": "^1.6",
-		"symfony/console": ">=3.4" 
+		"symfony/console": "^5.0" 
 	}, 
 	"suggest": {
 		"ext-json": "*", 

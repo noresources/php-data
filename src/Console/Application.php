@@ -8,9 +8,7 @@
  */
 namespace NoreSources\Data\Console;
 
-use Symfony\Component\Console\Application;
-
-class DataApplication extends Application
+class Application extends \Symfony\Component\Console\Application
 {
 
 	public function __construct()
