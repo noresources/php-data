@@ -21,7 +21,7 @@
 	}, 
 	"require": {
 		"php": ">=7.1", 
-		"noresources/ns-php-mediatype": "^1.6",
+		"noresources/ns-php-mediatype": "^1.7",
 		"symfony/console": "^5.0" 
 	}, 
 	"suggest": {

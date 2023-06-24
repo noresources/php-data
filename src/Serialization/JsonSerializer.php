@@ -57,6 +57,8 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
 
+	const PARAMETER_STYLE = 'style';
+
 	const STYLE_PRETTY = 'pretty';
 
 	public function __construct()
@@ -149,6 +151,22 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 				'application/json')
 		];
 	}
+
+	protected function getSupportedMediaTypeParameterValues()
+	{
+		if (!isset(self::$supportedMediaTypeParameters))
+		{
+			self::$supportedMediaTypeParameters = [
+				'application/json' => [
+					self::PARAMETER_STYLE => self::STYLE_PRETTY
+				]
+			];
+		}
+
+		return self::$supportedMediaTypeParameters;
+	}
+
+	private static $supportedMediaTypeParameters;
 
 	protected function buildFileExtensionList()
 	{

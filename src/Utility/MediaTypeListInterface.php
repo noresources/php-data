@@ -8,7 +8,6 @@
  */
 namespace NoreSources\Data\Utility;
 
-use NoreSources\MediaType\MediaRange;
 use NoreSources\MediaType\MediaTypeInterface;
 
 interface MediaTypeListInterface
@@ -27,4 +26,19 @@ interface MediaTypeListInterface
 	 * @return TRUE if $mediaType match with at least one media type of the list
 	 */
 	function matchMediaType(MediaTypeInterface $mediaType);
+
+	/**
+	 *
+	 * @param MediaTypeInterface $mediaType
+	 *        	A media type supported by the class
+	 * @param string $parameter
+	 *        	Media type parameter name
+	 * @param string|null $value
+	 *        	The parameter value
+	 *
+	 * @return TRUE if class supports the Media type parameter $paramter with (if set) the $value
+	 *         value.
+	 */
+	function supportsMediaTypeParameter(MediaTypeInterface $mediaType,
+		$parameter, $value = null);
 }

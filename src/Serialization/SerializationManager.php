@@ -12,6 +12,7 @@ use NoreSources\Container\Stack;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\UnserializableMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
+use NoreSources\Data\Utility\MediaTypeComparisonHelper;
 use NoreSources\MediaType\MediaTypeException;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
@@ -119,6 +120,34 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 				$s->getSerializableMediaRanges());
 		}
 		return \array_unique($mediaRanges);
+	}
+
+	public function buildSerialiableMediaTypeListMatchingMediaRanges(
+		$expectedMediaRanges, $flags = 0)
+	{
+
+		/**
+		 *
+		 * @var SerializableMediaTypeInterface[] $serializers
+		 */
+		$serializers = \array_filter($this->serializers,
+			function ($s) {
+				return $s instanceof SerializableMediaTypeInterface;
+			});
+
+		$list = [];
+		foreach ($serializers as $serializer)
+		{
+			$list = \array_merge($list,
+				$serializer->buildSerialiableMediaTypeListMatchingMediaRanges(
+					$expectedMediaRanges, $flags));
+		} // each serializer
+
+		return Container::uniqueValues($list,
+			[
+				MediaTypeComparisonHelper::class,
+				'lexicalCOmpare'
+			]);
 	}
 
 	/**

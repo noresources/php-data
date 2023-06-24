@@ -163,7 +163,8 @@ final class SerializationManagerTest extends \PHPUnit\Framework\TestCase
 				$data = $manager->unserializeData($serialized);
 
 				$this->assertTrue(
-					$manager->isSerializableToFile($derivedFilename, $data),
+					$manager->isSerializableToFile($derivedFilename,
+						$data),
 					$label . ' - ca re-serialize data to file');
 
 				$manager->serializeToFile($derivedFilename, $data);
@@ -188,5 +189,76 @@ final class SerializationManagerTest extends \PHPUnit\Framework\TestCase
 
 		$this->assertTrue($manager->matchFileExtension('csv'),
 			'Manager supports csv file extension');
+	}
+
+	public function testBuildSerialiableMediaTypeListMatchingMediaRanges()
+	{
+		$tests = [
+			'Basic JSON' => [
+				'accept' => [
+					'application/json'
+				],
+				'expected' => [
+					'application/json'
+				]
+			],
+			'Basic JSON or CSV' => [
+				'accept' => [
+					'application/json',
+					'text/csv'
+				],
+				'expected' => [
+					'application/json',
+					'text/csv'
+				]
+			],
+			'Pretty JSON' => [
+				'accept' => [
+					'application/json; style=pretty'
+				],
+				'expected' => [
+					'application/json; style=pretty'
+				]
+			],
+			'Pretty JSON and some unsupported parameter' => [
+				'accept' => [
+					'application/json; foo=bar; style=pretty'
+				],
+				'expected' => [
+					'application/json; style=pretty'
+				]
+			],
+			'Multiple cases' => [
+				'accept' => [
+					'application/json; foo=bar; style=pretty',
+					'text/csv; eol=EOL',
+					'text/csv; escape=!; exists=nope'
+				],
+				'expected' => [
+					'application/json; style=pretty',
+					'text/csv; eol=EOL',
+					'text/csv; escape=!'
+				]
+			]
+		];
+		$manager = new SerializationManager();
+		foreach ($tests as $label => $test)
+		{
+			$accept = Container::map($test['accept'],
+				function ($k, $v) {
+					return MediaTypeFactory::createFromString($v, true);
+				});
+
+			$actual = $manager->buildSerialiableMediaTypeListMatchingMediaRanges(
+				$accept);
+			$actual = Container::map($actual,
+				function ($k, $v) {
+					return $v->jsonSerialize();
+				});
+			$expected = $test['expected'];
+			sort($actual);
+			sort($expected);
+			$this->assertEquals($expected, $actual, $label);
+		}
 	}
 }

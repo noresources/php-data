@@ -31,4 +31,32 @@ interface SerializableMediaTypeInterface
 	 * @return MediaTypeInterface[]
 	 */
 	function getSerializableMediaRanges();
+
+	/**
+	 *
+	 * @param MediaTypeInterface|string $mediaType
+	 *        	A media type supported by the class
+	 * @param string $parameter
+	 *        	Media type parameter name
+	 * @param string|null $value
+	 *        	The parameter value
+	 *
+	 * @return TRUE if class supports the Media type parameter $paramter with (if set) the $value
+	 *         value.
+	 */
+	function isMediaTypeSerializableWithParameter(
+		MediaTypeInterface $mediaType, $parameter, $value = null);
+
+	const LIST_MEDIA_RANGE = 0x01;
+
+	/**
+	 *
+	 * @param MediaTypeInterface[] $expectedMediaRanges
+	 *        	A list of expected media ranges. For example, a list of media ranges contained in
+	 *        	a HTTP Accept header value.
+	 * @param number $flags
+	 *        	Result option flags
+	 */
+	function buildSerialiableMediaTypeListMatchingMediaRanges(
+		$expectedMediaRanges, $flags = 0);
 }

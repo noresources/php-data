@@ -312,6 +312,26 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 		];
 	}
 
+	protected function getSupportedMediaTypeParameterValues()
+	{
+		if (!isset(self::$supportedMediaTypeParameters))
+		{
+			self::$supportedMediaTypeParameters = [
+				'text/csv' => [
+					self::PARAMETER_ENCLOSURE => true,
+					self::PARAMETER_EOL => true,
+					self::PARAMETER_ESCAPE => true,
+					self::PARAMETER_FLATTEN => true,
+					self::PARAMETER_SEPARATOR => true
+				]
+			];
+		}
+
+		return self::$supportedMediaTypeParameters;
+	}
+
+	private static $supportedMediaTypeParameters;
+
 	/**
 	 *
 	 * @var callable

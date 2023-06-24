@@ -8,6 +8,7 @@
  */
 namespace NoreSources\Data\Utility\Traits;
 
+use NoreSources\Container\Container;
 use NoreSources\MediaType\MediaTypeInterface;
 
 /**
@@ -48,6 +49,42 @@ trait MediaTypeListTrait
 	protected function buildMediaTypeList()
 	{
 		throw new \LogicException('Not implementaed');
+	}
+
+	public function supportsMediaTypeParameter(
+		MediaTypeInterface $mediaType, $parameter, $value = null)
+	{
+		$map = $this->getSupportedMediaTypeParameterValues();
+
+		if (!Container::isTraversable($map))
+			return false;
+		$key = \strtolower(\strval($mediaType));
+		if (!Container::keyExists($map, $key))
+			return false;
+		$map = $map[$key];
+
+		$parameter = \strtolower($parameter);
+		if (!Container::keyExists($map, $parameter))
+			return false;
+		if ($value === null)
+			return true;
+
+		$list = $map[$parameter];
+		if ($list === true)
+			return true;
+
+		$value = \strtolower($value);
+		if (\is_string($list))
+			return ($list === $value);
+
+		if (!Container::isTraversable($list))
+			return false;
+		return Container::valueExists($list, $value);
+	}
+
+	protected function getSupportedMediaTypeParameterValues()
+	{
+		return null;
 	}
 
 	/**
