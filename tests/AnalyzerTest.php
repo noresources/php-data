@@ -10,6 +10,7 @@ namespace NoreSources\Data\Test;
 
 use NoreSources\Container\Container;
 use NoreSources\Data\Analyzer;
+use NoreSources\Data\CollectionClass;
 
 final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 {
@@ -19,11 +20,12 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 		$tests = [
 			'literal' => [
 				'data' => 'Foo',
-				'min-depth' => 0
+				Analyzer::MIN_DEPTH => 0
 			],
 			'empty array' => [
 				'data' => [],
-				'min-depth' => 1,
+				Analyzer::MIN_DEPTH => 1,
+				Analyzer::COLLECTION_CLASS => 0,
 				'types' => [
 					'array'
 				]
@@ -34,7 +36,8 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 					2,
 					3
 				],
-				'min-depth' => 1,
+				Analyzer::MIN_DEPTH => 1,
+				Analyzer::COLLECTION_CLASS => CollectionClass::LIST,
 				'types' => [
 					'array'
 				]
@@ -44,7 +47,8 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 					'key' => 'value',
 					'foo' => 'Bar'
 				],
-				'min-depth' => 1,
+				Analyzer::MIN_DEPTH => 1,
+				Analyzer::COLLECTION_CLASS => CollectionClass::DICTIONARY,
 				'types' => [
 					'object'
 				]
@@ -55,9 +59,11 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 					'array' => [
 						'bar',
 						'baz'
-					]
+					],
+					42 => 'The answer to life, the universe and everything'
 				],
-				'min-depth' => 1,
+				Analyzer::MIN_DEPTH => 1,
+				Analyzer::COLLECTION_CLASS => CollectionClass::MAP,
 				'types' => [
 					'object'
 				]
@@ -73,7 +79,9 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 						'Bugs'
 					]
 				],
-				'min-depth' => 2,
+				Analyzer::COLLECTION_CLASS => (CollectionClass::DICTIONARY |
+				CollectionClass::TABLE),
+				Analyzer::MIN_DEPTH => 2,
 				'types' => [
 					'object',
 					'array'
@@ -86,7 +94,9 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 		foreach ($tests as $label => $test)
 		{
 			$data = Container::keyValue($test, 'data');
-			$depth = Container::keyValue($test, 'min-depth', 0);
+			$depth = Container::keyValue($test, Analyzer::MIN_DEPTH, 0);
+			$collectionClass = Container::keyValue($test,
+				Analyzer::COLLECTION_CLASS);
 			$types = Container::keyValue($test, 'types', []);
 
 			$actualDepth = $analyzer->getDataMinDepth($data);
@@ -96,6 +106,20 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 				$label . ' min depth');
 			$this->assertEquals($types, $actualTypes,
 				$label . ' level types');
+
+			if ($collectionClass !== null)
+			{
+				$collectionClass = CollectionClass::getCollectionClassNames(
+					$collectionClass);
+				$collectionClass = \implode(', ', $collectionClass);
+				$actual = $analyzer->getCollectionClass($data);
+				$actual = CollectionClass::getCollectionClassNames(
+					$actual);
+				$actual = \implode(', ', $actual);
+
+				$this->assertEquals($collectionClass, $actual,
+					$label . ' collection classes');
+			}
 		}
 	}
 }

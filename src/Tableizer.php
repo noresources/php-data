@@ -19,8 +19,7 @@ class Tableizer
 	public function __invoke($data)
 	{
 		$analyzer = new Analyzer();
-		$dimensions = $analyzer->getDataDimensionTypes($data);
-		$depth = Container::count($dimensions);
+		$depth = $analyzer->getMinDepth($data);
 
 		if ($depth == 0)
 			return [
@@ -28,10 +27,11 @@ class Tableizer
 					$this->normalizeCellValue($data)
 				]
 			];
+		$collectionClass = $analyzer->getDimensionCollectionClasss($data, $depth);
 
 		if ($depth == 1)
 		{
-			if ($dimensions[0] == 'array')
+			if ($collectionClass[0] & CollectionClass::INDEXED)
 				return Container::map($data,
 					function ($k, $v) {
 						return [
@@ -53,9 +53,9 @@ class Tableizer
 
 		// 2D or more
 		$normalized = [];
-		if ($dimensions[0] == 'array')
+		if ($collectionClass[0] & CollectionClass::INDEXED)
 		{
-			if ($dimensions[1] == 'array')
+			if ($collectionClass[1] & CollectionClass::INDEXED)
 			{
 				foreach ($data as $line)
 				{
@@ -88,7 +88,7 @@ class Tableizer
 		}
 		else // objet of ...
 		{
-			if ($dimensions[1] == 'array')
+			if ($collectionClass[1] & CollectionClass::INDEXED)
 			{
 				foreach ($data as $property => $array)
 				{

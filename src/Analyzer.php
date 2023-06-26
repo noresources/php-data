@@ -21,14 +21,121 @@ class Analyzer
 {
 	use SingletonTrait;
 
-	public function getDataMinDepth($data)
+	/**
+	 * Data min depth
+	 *
+	 * @var string
+	 */
+	const MIN_DEPTH = 'min-depth';
+
+	/**
+	 * Content organization
+	 *
+	 * @var string
+	 */
+	const COLLECTION_CLASS = 'collection-class';
+
+	/**
+	 * Data container properties
+	 *
+	 * @var string
+	 */
+	const CONTAINER_PROPERTIES = 'container-properties';
+
+	/**
+	 * Gather all properties of input data.
+	 *
+	 * @param mixed $data
+	 *        	Input data
+	 * @return number[]|string[] Data properties
+	 */
+	public function __invoke($data)
+	{
+		$depth = $this->getMinDepth($data);
+		$collectionClass = $this->getCollectionClass($data, $depth);
+		$properties = 0;
+		if ($depth)
+			$properties = Container::properties($data);
+
+		return [
+			self::MIN_DEPTH => $depth,
+			self::COLLECTION_CLASS => $collectionClass,
+			self::CONTAINER_PROPERTIES => $properties
+		];
+	}
+
+	/**
+	 * Get input data container nature.
+	 *
+	 * @param mixed $data
+	 *        	Input data
+	 * @param number|NULL $depth
+	 *        	Pre-computed data depth
+	 * @return number Input data container nature flags
+	 */
+	public function getCollectionClass($data, $depth = null)
+	{
+		if ($depth === null)
+			$depth = $this->getMinDepth($data);
+		$collectionClass = 0;
+		if ($depth == 0)
+			return $collectionClass;
+
+		if (Container::isAssociative($data, true, false))
+		{
+			$collectionClass |= CollectionClass::ASSOCIATIVE;
+			$dictionary = false;
+			foreach ($data as $key => $_)
+			{
+				if (!\is_string($key))
+				{
+					$dictionary = false;
+					break;
+				}
+				$dictionary = true;
+			}
+			if ($dictionary)
+				$collectionClass |= CollectionClass::DICTIONARY;
+		}
+		elseif (Container::isIndexed($data, true, false))
+			$collectionClass |= CollectionClass::INDEXED;
+
+		if ($depth > 1)
+		{
+			$min = null;
+			$max = null;
+			foreach ($data as $columns)
+			{
+				$p = Container::properties($columns);
+				if (($p & Container::COUNTABLE) == 0)
+					continue;
+				$c = Container::count($columns);
+				if ($min === null || $c < $min)
+					$min = $c;
+				if ($max === null || $c > $max)
+					$max = $c;
+			}
+			if ($min && $max && $min == $max)
+				$collectionClass |= CollectionClass::TABLE;
+		}
+
+		return $collectionClass;
+	}
+
+	/**
+	 *
+	 * @param mixed $data
+	 *        	Input data
+	 * @return number
+	 */
+	public function getMinDepth($data)
 	{
 		if (!Container::isTraversable($data))
 			return 0;
 		$depth = -1;
 		foreach ($data as $value)
 		{
-			$d = $this->getDataMinDepth($value);
+			$d = $this->getMinDepth($value);
 			if ($depth < 0)
 				$depth = $d;
 			else
@@ -40,6 +147,32 @@ class Analyzer
 
 	/**
 	 *
+	 * @deprecated Use getMinDepth()
+	 */
+	public function getDataMinDepth($data)
+	{
+		return $this->getMinDepth($data);
+	}
+
+	public function getDimensionCollectionClasss($data, $depth = null)
+	{
+		if ($depth === null)
+			$depth = $this->getMinDepth($data);
+		$collectionClass = [];
+		$level = $data;
+		while ($depth--)
+		{
+			$collectionClass[] = $this->getCollectionClass($level);
+			$level = Container::firstValue($level);
+		}
+
+		return $collectionClass;
+	}
+
+	/**
+	 *
+	 * @deprecated Use getDimensionCollectionClasss()
+	 *
 	 * @param mixed $data
 	 *        	Data to analyze
 	 * @return string[] Nature of container for each data depth. Values are one of
@@ -50,7 +183,7 @@ class Analyzer
 	 */
 	public function getDataDimensionTypes($data)
 	{
-		$depth = $this->getDataMinDepth($data);
+		$depth = $this->getMinDepth($data);
 		$types = [];
 		$level = $data;
 		while ($depth--)
