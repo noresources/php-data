@@ -10,7 +10,7 @@ namespace NoreSources\Data\Console;
 
 use Composer\InstalledVersions;
 use NoreSources\Container\Container;
-use NoreSources\Data\Serialization\DataSerializationManager;
+use NoreSources\Data\Serialization\SerializationManager;
 use NoreSources\MediaType\MediaTypeFactory;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,12 +21,12 @@ class Utility
 	/**
 	 *
 	 * @param InputInterface $input
-	 * @return \NoreSources\Data\Serialization\DataSerializationManager
+	 * @return \NoreSources\Data\Serialization\SerializationManager
 	 */
 	public static function createSerializationManager(
 		InputInterface $input, OutputInterface $output)
 	{
-		$manager = new DataSerializationManager();
+		$manager = new SerializationManager();
 		if (!$input->getOption('auto-register-serializers'))
 			return $manager;
 
@@ -60,8 +60,7 @@ class Utility
 	}
 
 	public static function registerSerializerFromComposerPackage(
-		DataSerializationManager $manager, $package,
-		OutputInterface $output)
+		SerializationManager $manager, $package, OutputInterface $output)
 	{
 		if (($extra = Container::keyValue($package, 'extra')) &&
 			($section = Container::keyValue($extra, 'ns-php-data')) &&

@@ -8,6 +8,9 @@
  */
 namespace NoreSources\Data\Console;
 
+use NoreSources\Data\Console\Command\ConvertCommand;
+use Symfony\Component\Console\Input\InputOption;
+
 class Application extends \Symfony\Component\Console\Application
 {
 
@@ -17,6 +20,8 @@ class Application extends \Symfony\Component\Console\Application
 
 		$convert = new ConvertCommand();
 		$this->add($convert);
-		$this->setDefaultCommand($convert->getName());
+		$this->getDefinition()->addOption(
+			new InputOption('auto-register-serializers', 'a', null,
+				'Auto register (de)serializers based on composer package descriptions'));
 	}
 }

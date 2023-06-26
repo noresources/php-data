@@ -6,7 +6,7 @@
  *
  * @package Data
  */
-namespace NoreSources\Data\Console;
+namespace NoreSources\Data\Console\Command;
 
 use NoreSources\Container\Container;
 use NoreSources\MediaType\MediaTypeException;
@@ -17,6 +17,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use NoreSources\Data\Console\Option\MediaTypeOption;
+use NoreSources\Data\Console\Utility;
+use NoreSources\Data\Console\Option\MediaTypeParameterListOption;
 
 class ConvertCommand extends Command
 {
@@ -30,16 +33,23 @@ class ConvertCommand extends Command
 
 	protected function configure()
 	{
+		$from = new MediaTypeOption('from', null, null,
+			'Input media type');
+		$fromParams = new MediaTypeParameterListOption('from-params',
+			null, null, 'Input media type parameters');
+		$to = new MediaTypeOption('to', null, null, 'Output media type');
+		$toParams = new MediaTypeParameterListOption('to-params', null,
+			null, 'Output media type parameters');
+
 		$this->addArgument('input', InputArgument::OPTIONAL,
-			'Input file', 'php://stdin')
-			->addArgument('output', InputArgument::OPTIONAL,
-			'Output file', 'php://stdout')
-			->addOption('from', null, InputOption::VALUE_REQUIRED,
-			'Input media type')
-			->addOption('to', null, InputOption::VALUE_REQUIRED,
-			'Output media type')
-			->addOption('auto-register-serializers', 'a', null,
-			'Auto register (de)serializers based on composer package descriptions');
+			'Input file', 'php://stdin')->addArgument('output',
+			InputArgument::OPTIONAL, 'Output file', 'php://stdout');
+
+		$description = $this->getDefinition();
+		$description->addOption($from);
+		$description->addOption($fromParams);
+		$description->addOption($to);
+		$description->addOption($toParams);
 	}
 
 	public function execute(InputInterface $input,
@@ -198,6 +208,11 @@ class ConvertCommand extends Command
 			return $end(1,
 				'<error>Output media type cannot be guessed. Use --to to specify it.</error>');
 		}
+
+		MediaTypeParameterListOption::populateMediaType($inputMediaType,
+			$input, 'from-params');
+		MediaTypeParameterListOption::populateMediaType(
+			$outputMediaType, $input, 'to-params');
 
 		if ($output->getVerbosity() >=
 			OutputInterface::VERBOSITY_VERY_VERBOSE)
