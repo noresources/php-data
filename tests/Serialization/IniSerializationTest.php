@@ -20,6 +20,8 @@ final class IniSerializationTest extends SerializerTestCaseBase
 
 	const CLASS_NAME = IniSerializer::class;
 
+	const EXTENSION = 'ini';
+
 	public function testImplements()
 	{
 		if (!$this->canTestSerializer())
@@ -38,7 +40,7 @@ final class IniSerializationTest extends SerializerTestCaseBase
 			], $serializer);
 	}
 
-	public function testIni()
+	public function testSerialization()
 	{
 		$directory = __DIR__ . '/../reference';
 		$ini = new IniSerializer();
@@ -47,7 +49,7 @@ final class IniSerializationTest extends SerializerTestCaseBase
 			'a'
 		] as $name)
 		{
-			$filename = $directory . '/' . $name . '.ini';
+			$filename = $directory . '/' . $name . '.' . self::EXTENSION;
 
 			$this->assertTrue($ini->isUnserializableFromFile($filename),
 				'Can unserialize ' .

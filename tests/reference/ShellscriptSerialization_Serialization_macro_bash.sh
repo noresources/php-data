@@ -1,0 +1,24 @@
+NULL=''
+TRUE=true
+FALSE=false
+THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING=42
+FRANC_TO_EURO=6.55957
+STRING='The "good", the '\''bad'\'', and Bob-Wan Kenobi'
+LIST=(\
+	'one'\
+	2\
+	'Free'\
+)
+DICTIONARY[ONE]='un'
+DICTIONARY[TWO]='deux'
+DICTIONARY[THREE]='trois'
+MAP_0=(\
+	'one'\
+	'un'\
+)
+MAP_DUCKS_DISNEY=(\
+	'Donald'\
+	'Huey'\
+)
+MAP_DUCKS[WARNER]='Daffy'
+MAP_1[RABBIT]='Bugs'

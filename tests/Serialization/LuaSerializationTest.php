@@ -22,7 +22,7 @@ final class LuaSerializationTest extends SerializerTestCaseBase
 
 	const CLASS_NAME = LuaSerializer::class;
 
-	public function testLua()
+	public function testSerialization()
 	{
 		$directory = __DIR__ . '/../reference';
 		$tests = [

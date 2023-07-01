@@ -51,6 +51,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 		{
 			$this->registerSerializer(new PlainTextSerializer());
 			$this->registerSerializer(new UrlEncodedSerializer());
+			$this->registerSerializer(new ShellscriptSerializer());
 			$this->registerSerializer(new IniSerializer());
 			$this->registerSerializer(new CsvSerializer());
 			$this->registerSerializer(new LuaSerializer());

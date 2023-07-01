@@ -27,6 +27,8 @@ final class JsonSerializationTest extends SerializerTestCaseBase
 
 	const MEDIA_TYPE = 'application/json';
 
+	const EXTENSION = 'json';
+
 	public function testImplements()
 	{
 		$serializer = $this->createSerializer();
@@ -60,7 +62,8 @@ final class JsonSerializationTest extends SerializerTestCaseBase
 				'mediaType' => self::MEDIA_TYPE
 			],
 			'force mediatype with a structured syntax' => [
-				'mediaType' => 'application/vnd.ns.php.data+json'
+				'mediaType' => 'application/vnd.ns.php.data+' .
+				self::EXTENSION
 			],
 			'bad mediatype' => [
 				'mediaType' => 'application/yaml',
@@ -92,7 +95,7 @@ final class JsonSerializationTest extends SerializerTestCaseBase
 		$tests = [
 			'by extension' => [
 				'arguments' => [
-					'foo.json'
+					'foo.' . self::EXTENSION
 				],
 				'expected' => true
 			],
