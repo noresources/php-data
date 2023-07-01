@@ -20,11 +20,13 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 		$tests = [
 			'literal' => [
 				'data' => 'Foo',
-				Analyzer::MIN_DEPTH => 0
+				Analyzer::MIN_DEPTH => 0,
+				Analyzer::MAX_DEPTH => 0
 			],
 			'empty array' => [
 				'data' => [],
 				Analyzer::MIN_DEPTH => 1,
+				Analyzer::MAX_DEPTH => 1,
 				Analyzer::COLLECTION_CLASS => 0,
 				'types' => [
 					'array'
@@ -37,6 +39,7 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 					3
 				],
 				Analyzer::MIN_DEPTH => 1,
+				Analyzer::MAX_DEPTH => 1,
 				Analyzer::COLLECTION_CLASS => CollectionClass::LIST,
 				'types' => [
 					'array'
@@ -48,6 +51,7 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 					'foo' => 'Bar'
 				],
 				Analyzer::MIN_DEPTH => 1,
+				Analyzer::MAX_DEPTH => 1,
 				Analyzer::COLLECTION_CLASS => CollectionClass::DICTIONARY,
 				'types' => [
 					'object'
@@ -63,6 +67,7 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 					42 => 'The answer to life, the universe and everything'
 				],
 				Analyzer::MIN_DEPTH => 1,
+				Analyzer::MAX_DEPTH => 2,
 				Analyzer::COLLECTION_CLASS => CollectionClass::MAP,
 				'types' => [
 					'object'
@@ -82,6 +87,7 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 				Analyzer::COLLECTION_CLASS => (CollectionClass::DICTIONARY |
 				CollectionClass::TABLE),
 				Analyzer::MIN_DEPTH => 2,
+				Analyzer::MAX_DEPTH => 2,
 				'types' => [
 					'object',
 					'array'
@@ -94,16 +100,24 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 		foreach ($tests as $label => $test)
 		{
 			$data = Container::keyValue($test, 'data');
-			$depth = Container::keyValue($test, Analyzer::MIN_DEPTH, 0);
+			$minDepth = Container::keyValue($test, Analyzer::MIN_DEPTH,
+				-1);
+			$maxDepth = Container::keyValue($test, Analyzer::MAX_DEPTH,
+				-1);
 			$collectionClass = Container::keyValue($test,
 				Analyzer::COLLECTION_CLASS);
 			$types = Container::keyValue($test, 'types', []);
 
-			$actualDepth = $analyzer->getDataMinDepth($data);
+			$actualMinDepth = $analyzer->getDataMinDepth($data);
+			$actualMaxDepth = $analyzer->getMaxDepth($data);
 			$actualTypes = $analyzer->getDataDimensionTypes($data);
 
-			$this->assertEquals($depth, $actualDepth,
-				$label . ' min depth');
+			if ($minDepth >= 0)
+				$this->assertEquals($minDepth, $actualMinDepth,
+					$label . ' min depth');
+			if ($maxDepth >= 0)
+				$this->assertEquals($maxDepth, $actualMaxDepth,
+					$label . ' max depth');
 			$this->assertEquals($types, $actualTypes,
 				$label . ' level types');
 

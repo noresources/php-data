@@ -29,6 +29,13 @@ class Analyzer
 	const MIN_DEPTH = 'min-depth';
 
 	/**
+	 * Data max depth
+	 *
+	 * @var string
+	 */
+	const MAX_DEPTH = 'max-depth';
+
+	/**
 	 * Content organization
 	 *
 	 * @var string
@@ -59,6 +66,7 @@ class Analyzer
 
 		return [
 			self::MIN_DEPTH => $depth,
+			self::MAX_DEPTH => $this->getMaxDepth($data),
 			self::COLLECTION_CLASS => $collectionClass,
 			self::CONTAINER_PROPERTIES => $properties
 		];
@@ -143,6 +151,26 @@ class Analyzer
 		}
 
 		return \max(0, $depth) + 1;
+	}
+
+	/**
+	 *
+	 * @param mixed $data
+	 *        	Input data
+	 * @return integer Max depth of data
+	 */
+	public function getMaxDepth($data)
+	{
+		if (!Container::isTraversable($data))
+			return 0;
+		$depth = 1;
+		foreach ($data as $value)
+		{
+			$d = $this->getMaxDepth($value);
+			$depth = \max($depth, $d + 1);
+		}
+
+		return $depth;
 	}
 
 	/**
