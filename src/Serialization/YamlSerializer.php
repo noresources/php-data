@@ -8,6 +8,7 @@
  */
 namespace NoreSources\Data\Serialization;
 
+use NoreSources\Container\Container;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -51,6 +52,13 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerFileUnserializerTrait;
 
 	/**
+	 * Encoding
+	 *
+	 * @var string
+	 */
+	const PARAMETER_ENCODING = 'charset';
+
+	/**
 	 * Default encoding
 	 *
 	 * @var string
@@ -80,14 +88,7 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 	public function serializeToFile($filename, $data,
 		MediaTypeInterface $mediaType = null)
 	{
-		$encoding = $this->encoding;
-		if ($mediaType &&
-			$mediaType->getParameters()->offsetExists('charset'))
-		{
-			$charset = $mediaType->getParameters()->offsetGet('charset');
-			if (\strcasecmp($charset, 'utf-8') == 0)
-				$encoding = YAML_UTF8_ENCODING;
-		}
+		$encoding = $this->getEncoding($mediaType);
 		$result = @\yaml_emit_file($filename, $data, $encoding);
 		if ($result !== true)
 			throw new SerializationException('Failed to emit YAML file');
@@ -102,15 +103,7 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 	public function serializeData($data,
 		MediaTypeInterface $mediaType = null)
 	{
-		$encoding = $this->encoding;
-		if ($mediaType &&
-			$mediaType->getParameters()->offsetExists('charset'))
-		{
-			$charset = $mediaType->getParameters()->offsetGet('charset');
-			if (\strcasecmp($charset, 'utf-8') == 0)
-				$encoding = YAML_UTF8_ENCODING;
-		}
-
+		$encoding = $this->getEncoding($mediaType);
 		return \yaml_emit($data, $encoding);
 	}
 
@@ -153,6 +146,27 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 		];
 	}
 
+	protected function getSupportedMediaTypeParameterValues()
+	{
+		if (!isset(self::$supportedMediaTypeParameters))
+		{
+			self::$supportedMediaTypeParameters = [];
+			foreach ([] as $mediaType)
+			{
+				self::$supportedMediaTypeParameters[$mediaType] = [
+					self::PARAMETER_ENCODING => [
+						'utf-8',
+						'utf-16',
+						'utf-16le',
+						'utf-16be'
+					]
+				];
+			}
+		}
+
+		return self::$supportedMediaTypeParameters;
+	}
+
 	public function buildFileExtensionList()
 	{
 		return [
@@ -160,4 +174,30 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 			'yml'
 		];
 	}
+
+	protected function getEncoding(MediaTypeInterface $mediaType = null)
+	{
+		$encoding = $this->encoding;
+		$charset = null;
+		if (!($mediaType &&
+			($charset = Container::keyValue($mediaType->getParameters(),
+				self::PARAMETER_ENCODING))))
+			return $encoding;
+
+		switch (\strtolower($charset))
+		{
+			case 'utf-8':
+				$encoding = YAML_UTF8_ENCODING;
+			case 'utf-16':
+			case 'utf-16-be':
+				$encoding = YAML_UTF16BE_ENCODING;
+			break;
+			case 'utf-16-le':
+				$encoding = YAML_UTF16LE_ENCODING;
+			break;
+		}
+		return $encoding;
+	}
+
+	private static $supportedMediaTypeParameters;
 }
