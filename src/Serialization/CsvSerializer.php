@@ -37,6 +37,8 @@ use NoreSources\Type\TypeConversionException;
  * <li><code>escape</code></li>
  * <li><code>eol</code> (serializer and PHP 8.1+ for serializer)</li>
  * <li><code>flatten</code> (unserializer only)</li>
+ * <li><code>heading=none|auto|row|column</code> (unserialize only) Transforms table to object or
+ * collection of objects</li>
  * </ul>
  */
 class CsvSerializer implements UnserializableMediaTypeInterface,
@@ -60,14 +62,81 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
 
+	/**
+	 * Field separamter
+	 *
+	 * @var string
+	 */
 	const PARAMETER_SEPARATOR = 'separator';
 
+	/**
+	 * Text enclosing character
+	 *
+	 * @var string
+	 */
 	const PARAMETER_ENCLOSURE = 'enclosure';
 
+	/**
+	 * Escape character
+	 *
+	 * @var string
+	 */
 	const PARAMETER_ESCAPE = 'escape';
 
+	/**
+	 * End of line character
+	 *
+	 * @var string
+	 */
 	const PARAMETER_EOL = 'eol';
 
+	/**
+	 * Row and column heading mode
+	 *
+	 * @var string
+	 */
+	const PARAMETER_HEADING = 'heading';
+
+	/**
+	 * No headings
+	 *
+	 * @var string
+	 */
+	const HEADING_NONE = 'none';
+
+	/**
+	 * Auto-detect headings
+	 *
+	 * @var string
+	 */
+	const HEADING_AUTO = 'auto';
+
+	/**
+	 * Row heading only
+	 *
+	 * @var string
+	 */
+	const HEADING_ROW = 'row';
+
+	/**
+	 * Column heading only
+	 *
+	 * @var string
+	 */
+	const HEADING_COLUMN = 'column';
+
+	/**
+	 * Both row and column headings
+	 *
+	 * @var string
+	 */
+	const HEADING_BOTH = 'both';
+
+	/**
+	 * Reduce table dimension when top level array contains only one element.
+	 *
+	 * @var string
+	 */
 	const PARAMETER_FLATTEN = 'flatten';
 
 	/**
@@ -190,17 +259,21 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 		MediaTypeInterface $mediaType = null)
 	{
 		$options = [
-			self::PARAMETER_FLATTEN => false
+			self::PARAMETER_FLATTEN => false,
+			self::PARAMETER_HEADING => self::HEADING_NONE
 		];
 		if (!$mediaType)
 			return $options;
 
-		foreach ([
-			self::PARAMETER_FLATTEN
-		] as $b)
+		foreach ($options as $h => $dflt)
 		{
-			if ($mediaType->getParameters()->has($b))
-				$options[$b] = true;
+			if (!$mediaType->getParameters()->has($h))
+				continue;
+			$value = $mediaType->getParameters()->get($h);
+			$value = \strtolower($value);
+			if (empty($value) && $dflt === false)
+				$value = true;
+			$options[$h] = $value;
 		}
 
 		return $options;
@@ -217,6 +290,73 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 			{
 				$lines[] = $last;
 			}
+		}
+		$lineCount = Container::count($lines);
+		if ($lineCount == 0)
+			return $lines;
+		$columnCount = Container::count($lines[0]);
+		if ($columnCount == 0)
+			return $lines;
+
+		$heading = Container::keyValue($options, self::PARAMETER_HEADING);
+		if ($heading == self::HEADING_AUTO)
+		{
+			$pivot = $lines[0][0];
+			if (empty($pivot))
+			{
+				$heading = self::HEADING_BOTH;
+			}
+		}
+
+		if ($heading == self::HEADING_COLUMN)
+		{
+			$fields = [];
+			$object = [];
+			foreach ($lines[0] as $field)
+			{
+				$fields[] = $field;
+				$object[$field] = [];
+			}
+			$fieldCount = Container::count($fields);
+
+			for ($a = 1; $a < $lineCount; $a++)
+			{
+				for ($b = 0; $b < $fieldCount; $b++)
+					$object[$fields[$b]][] = $lines[$a][$b];
+			}
+			return $object;
+		}
+		elseif ($heading == self::HEADING_ROW)
+		{
+			$fields = [];
+			$object = [];
+			foreach ($lines as $line)
+			{
+				$field = $line[0];
+				$fields[] = $field;
+				$object[$field] = [];
+			}
+			$fieldCount = Container::count($fields);
+
+			for ($a = 0; $a < $lineCount; $a++)
+			{
+				for ($b = 1; $b < $fieldCount; $b++)
+					$object[$fields[$a]][] = $lines[$a][$b];
+			}
+			return $object;
+		}
+		elseif ($heading == self::HEADING_BOTH)
+		{
+			$collection = [];
+			$fieldCount = Container::count($lines[0]);
+			for ($a = 1; $a < $lineCount; $a++)
+			{
+				$object = [];
+				for ($b = 1; $b < $fieldCount; $b++)
+					$object[$lines[0][$b]] = $lines[$a][$b];
+				$collection[$lines[$a][0]] = $object;
+			}
+			return $collection;
 		}
 
 		$flatten = Container::keyValue($options, self::PARAMETER_FLATTEN);
@@ -322,7 +462,14 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 					self::PARAMETER_EOL => true,
 					self::PARAMETER_ESCAPE => true,
 					self::PARAMETER_FLATTEN => true,
-					self::PARAMETER_SEPARATOR => true
+					self::PARAMETER_SEPARATOR => true,
+					self::PARAMETER_HEADING => [
+						self::HEADING_NONE,
+						self::HEADING_AUTO,
+						self::HEADING_ROW,
+						self::HEADING_COLUMN,
+						self::HEADING_BOTH
+					]
 				]
 			];
 		}
