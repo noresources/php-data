@@ -24,7 +24,7 @@ final class LuaSerializationTest extends SerializerTestCaseBase
 
 	public function testLua()
 	{
-		$directory = __DIR__ . '/../data';
+		$directory = __DIR__ . '/../reference';
 		$tests = [
 			'nil' => null,
 			'true' => true,

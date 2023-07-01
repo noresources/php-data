@@ -127,7 +127,7 @@ final class CsvSerializationTest extends SerializerTestCaseBase
 		$this->assertEquals($deserialized, $input,
 			'Serialization/Deserialization cycle');
 
-		$filename = __DIR__ . '/../data/table.' . self::FILE_EXTENSION;
+		$filename = __DIR__ . '/../reference/table.' . self::FILE_EXTENSION;
 		$deserializedFile = $serializer->unserializeFromFile($filename);
 
 		$this->assertEquals($input, $deserializedFile,

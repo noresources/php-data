@@ -86,7 +86,7 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 			}
 		}
 
-		$filename = __DIR__ . '/../data/' . $typename . '/' .
+		$filename = __DIR__ . '/../reference/' . $typename . '/' .
 			$serializeName . '.' . $extension;
 		$this->assertFileExists($filename,
 			'Reference file for ' . $serializeShortName . ' exists');

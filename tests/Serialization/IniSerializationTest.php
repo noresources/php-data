@@ -40,7 +40,7 @@ final class IniSerializationTest extends SerializerTestCaseBase
 
 	public function testIni()
 	{
-		$directory = __DIR__ . '/../data';
+		$directory = __DIR__ . '/../reference';
 		$ini = new IniSerializer();
 
 		foreach ([

@@ -134,7 +134,7 @@ final class SerializationManagerTest extends \PHPUnit\Framework\TestCase
 			{
 				if (!\extension_loaded($extension))
 					continue;
-				$filename = __DIR__ . '/../data/' . $key . '.' .
+				$filename = __DIR__ . '/../reference/' . $key . '.' .
 					$extension;
 				$derivedFilename = __DIR__ . '/../derived/' . $key . '.' .
 					$extension;
