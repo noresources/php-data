@@ -12,6 +12,7 @@ use NoreSources\Data\Serialization\FileSerializerInterface;
 use NoreSources\Data\Serialization\LuaSerializer;
 use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
+use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\Type\TypeDescription;
@@ -77,7 +78,8 @@ final class LuaSerializationTest extends SerializerTestCaseBase
 				MediaTypeListInterface::class,
 				StreamSerializerInterface::class,
 				DataSerializerInterface::class,
-				FileSerializerInterface::class
+				FileSerializerInterface::class,
+				FileExtensionListInterface::class
 			], $serializer);
 	}
 }

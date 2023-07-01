@@ -13,7 +13,9 @@ use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerFileSerializerTrait;
+use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
 use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
@@ -26,9 +28,11 @@ use NoreSources\Type\TypeConversion;
  */
 class LuaSerializer implements SerializableMediaTypeInterface,
 	DataSerializerInterface, FileSerializerInterface,
-	StreamSerializerInterface, MediaTypeListInterface
+	StreamSerializerInterface, MediaTypeListInterface,
+	FileExtensionListInterface
 {
 	use MediaTypeListTrait;
+	use FileExtensionListTrait;
 
 	use SerializableMediaTypeTrait;
 
@@ -159,6 +163,13 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 		return [
 			MediaTypeFactory::getInstance()->createFromString(
 				'text/x-lua')
+		];
+	}
+
+	public function getFileExtensions()
+	{
+		return [
+			'lua'
 		];
 	}
 
