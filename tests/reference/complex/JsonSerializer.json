@@ -1,0 +1,48 @@
+{
+	"pod": {
+		"number": {
+			"int": 42, 
+			"float": 3.14
+		}, 
+		"Null": null, 
+		"True": true, 
+		"False": false, 
+		"string": "The \"good\", the bad, and Kil'Jaiden", 
+		"text": "The first line\nThe second line\nand the last one"
+	}, 
+	"key": "value", 
+	"another-key": "Another value", 
+	"even": [
+		0, 
+		2, 
+		4, 
+		6
+	], 
+	"numbers": {
+		"odd": [
+			1, 
+			3, 
+			5, 
+			7
+		], 
+		"translations": {
+			"one": "un", 
+			"two": "deux", 
+			"three": "trois"
+		}
+	}, 
+	"meta": {
+		"foo": {
+			"bar": {
+				"baz": "!"
+			}
+		}
+	}, 
+	"reserved": {
+		"keywords": [
+			null, 
+			true, 
+			false
+		]
+	}
+}

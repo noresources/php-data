@@ -29,7 +29,9 @@ use NoreSources\MediaType\MediaTypeMatcher;
  * JSON content and file (de)serialization
  *
  * Supported media type parameters
- * - style=pretty
+ * <ul>
+ * <li>style=pretty</li>
+ * <ul>
  *
  * Require json PHP extension.
  *

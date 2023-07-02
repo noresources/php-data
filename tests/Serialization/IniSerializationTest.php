@@ -22,6 +22,8 @@ final class IniSerializationTest extends SerializerTestCaseBase
 
 	const EXTENSION = 'ini';
 
+	const MEDIA_TYPE = 'text/x-ini';
+
 	public function testImplements()
 	{
 		if (!$this->canTestSerializer())
@@ -40,7 +42,37 @@ final class IniSerializationTest extends SerializerTestCaseBase
 			], $serializer);
 	}
 
-	public function testSerialization()
+	public function testPOD()
+	{
+		if (!$this->canTestSerializer())
+			return;
+
+		$tests = [
+			'auto' => [],
+			'force mediatype' => [
+				'mediaType' => self::MEDIA_TYPE
+			],
+			'bad mediatype' => [
+				'mediaType' => 'application/yaml',
+				'isUnserializable' => false
+			]
+		];
+
+		foreach ([
+			'string',
+			'integer',
+			'float',
+			'boolean'
+		] as $typename)
+		{
+			foreach ($tests as $options)
+			{
+				$this->assertTypeSerialization($typename, $options);
+			}
+		}
+	}
+
+	public function testAgainstPhpBuiltin()
 	{
 		$directory = __DIR__ . '/../reference';
 		$ini = new IniSerializer();
@@ -55,7 +87,25 @@ final class IniSerializationTest extends SerializerTestCaseBase
 				'Can unserialize ' .
 				\pathinfo($filename, PATHINFO_FILENAME));
 
-			$data = $ini->unserializeFromFile($filename);
+			try
+			{
+				$actual = $ini->unserializeFromFile($filename);
+			}
+			catch (\Exception $e)
+			{
+				$actual = [
+					\get_class($e) => $e->getMessage()
+				];
+				foreach ($e->getTrace() as $e)
+				{
+					$actual[] = $e['function'] . ' ' .
+						\basename($e['file']) . ' ' . $e['line'];
+				}
+			}
+
+			$this->assertEquals(
+				\parse_ini_file($filename, INI_SCANNER_TYPED), $actual,
+				$name . 'file');
 		}
 	}
 }
