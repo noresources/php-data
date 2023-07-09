@@ -12,6 +12,7 @@ use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\DataUnserializerInterface;
 use NoreSources\Data\Serialization\FileSerializerInterface;
 use NoreSources\Data\Serialization\FileUnserializerInterface;
+use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Serialization\StreamUnserializerInterface;
 use NoreSources\Data\Test\SerializerAssertionTrait;
@@ -37,6 +38,58 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 	{
 		$this->initializeSerializerAssertions(static::CLASS_NAME,
 			__DIR__ . '/..');
+	}
+
+	public function assertSupportsMediaTypeParameter($expectedKeyValues,
+		$serializer = null, $mediaType = null, $message = null)
+	{
+		if (!$serializer)
+			$serializer = $this->createSerializer();
+		if ($message)
+			$message .= ': ';
+		else
+			$message = '';
+
+		$this->assertTrue(
+			$serializer instanceof SerializableMediaTypeInterface,
+			$message . TypeDescription::getLocalName($serializer) .
+			' implements ' . SerializableMediaTypeInterface::class);
+
+		if (!$serializer)
+			$serializer = $this->createSerializer();
+		if (!$mediaType)
+			$mediaType = MediaTypeFactory::getInstance()->createFromString(
+				static::MEDIA_TYPE);
+
+		/**
+		 *
+		 * @var SerializableMediaTypeInterface $serializer
+		 */
+
+		foreach ($expectedKeyValues as $lbl => $expectedKeyValue)
+		{
+			$label = [
+				$message
+			];
+			if (\is_string($lbl) && \strlen($lbl))
+				$label[] = $lbl;
+			$expected = Container::keyValue($expectedKeyValue, 0);
+			$this->assertIsBool($expected,
+				$message . ' expected is bool');
+			$parameter = Container::keyValue($expectedKeyValue, 1);
+			$this->assertNotNull($parameter,
+				$message . ' parameter is not null');
+			$value = Container::keyValue($expectedKeyValue, 2);
+
+			$label[] = \strval($mediaType) . ' ' . $parameter . '=' .
+				\strval($value);
+			$label[] = ' is' . ($expected ? '' : ' not') . ' supported';
+			$label = \implode(' ', $label);
+
+			$actual = $serializer->isMediaTypeSerializableWithParameter(
+				$mediaType, $parameter, $value);
+			$this->assertEquals($expected, $actual, $label);
+		}
 	}
 
 	public function assertImplements($list, $serializer, $message = null)

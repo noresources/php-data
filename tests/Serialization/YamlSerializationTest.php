@@ -47,6 +47,27 @@ final class YamlSerializationTest extends SerializerTestCaseBase
 			], $serializer);
 	}
 
+	public function testParameters()
+	{
+		$this->assertSupportsMediaTypeParameter(
+			[
+				[
+					true,
+					'charset'
+				],
+				[
+					true,
+					'charset',
+					'utf-8'
+				],
+				[
+					false,
+					'charset',
+					'ascii'
+				]
+			]);
+	}
+
 	public function testPOD()
 	{
 		if (!$this->canTestSerializer())

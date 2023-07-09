@@ -62,6 +62,8 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
 
+	const MEDIA_TYPE = 'text/csv';
+
 	/**
 	 * Field separamter
 	 *
@@ -390,7 +392,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(
-				'text/csv'),
+				self::MEDIA_TYPE),
 			/*
 			 *  application/csv is not a registered media type but
 			 *  finfo_type / mime_content_type may return this one
@@ -457,7 +459,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 		if (!isset(self::$supportedMediaTypeParameters))
 		{
 			self::$supportedMediaTypeParameters = [
-				'text/csv' => [
+				self::MEDIA_TYPE => [
 					self::PARAMETER_ENCLOSURE => true,
 					self::PARAMETER_EOL => true,
 					self::PARAMETER_ESCAPE => true,

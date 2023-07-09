@@ -127,37 +127,31 @@ final class JsonSerializationTest extends SerializerTestCaseBase
 		if (!$this->canTestSerializer())
 			return;
 
-		$serializer = new JsonSerializer();
+		$serializer = $this->createSerializer();
 
 		$mediaType = MediaTypeFactory::createFromString(
 			self::MEDIA_TYPE);
 
-		foreach ([
-			'style parameter' => [
-				true,
-				'style'
-			],
-			'unexpected parameter' => [
-				false,
-				'unholy'
-			],
-			'pretty style' => [
-				true,
-				'style',
-				'pretty'
-			],
-			'ugly style' => [
-				false,
-				'style',
-				'ugly'
-			]
-		] as $label => $args)
-		{
-			$expected = \array_shift($args);
-			\array_unshift($args, $mediaType);
-			$actual = $serializer->isMediaTypeSerializableWithParameter(
-				...$args);
-			$this->assertEquals($expected, $actual, $label);
-		}
+		$this->assertSupportsMediaTypeParameter(
+			[
+				'style parameter' => [
+					true,
+					'style'
+				],
+				'unexpected parameter' => [
+					false,
+					'unholy'
+				],
+				'pretty style' => [
+					true,
+					'style',
+					'pretty'
+				],
+				'ugly style' => [
+					false,
+					'style',
+					'ugly'
+				]
+			], $serializer, $mediaType);
 	}
 }

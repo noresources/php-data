@@ -51,6 +51,12 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
 
+	const MEDIA_TYPE = 'text/yaml';
+
+	const MEDIA_TYPE_UNREGISTERED = 'text/x-yaml';
+
+	const MEDIA_TYPE_ALTERNATIVE = 'application/yaml';
+
 	/**
 	 * Encoding
 	 *
@@ -140,9 +146,9 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 	{
 		$factory = MediaTypeFactory::getInstance();
 		return [
-			$factory->createFromString('text/x-yaml'),
-			$factory->createFromString('text/yaml'),
-			$factory->createFromString('application/yaml')
+			$factory->createFromString(self::MEDIA_TYPE),
+			$factory->createFromString(self::MEDIA_TYPE_UNREGISTERED),
+			$factory->createFromString(self::MEDIA_TYPE_ALTERNATIVE)
 		];
 	}
 
@@ -151,7 +157,11 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 		if (!isset(self::$supportedMediaTypeParameters))
 		{
 			self::$supportedMediaTypeParameters = [];
-			foreach ([] as $mediaType)
+			foreach ([
+				self::MEDIA_TYPE,
+				self::MEDIA_TYPE_UNREGISTERED,
+				self::MEDIA_TYPE_ALTERNATIVE
+			] as $mediaType)
 			{
 				self::$supportedMediaTypeParameters[$mediaType] = [
 					self::PARAMETER_ENCODING => [

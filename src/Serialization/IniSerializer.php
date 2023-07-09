@@ -70,6 +70,10 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	use StreamSerializerDataSerializerTrait;
 	use StreamSerializerFileSerializerTrait;
 
+	const MEDIA_TYPE = 'text/x-ini';
+
+	const MEDIA_TYPE_ALTERNAVIE = 'application/x-wine-extension-ini';
+
 	/**
 	 * Key-value line inside section MAY be indented
 	 *
@@ -362,9 +366,9 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(
-				'text/x-ini'),
+				self::MEDIA_TYPE),
 			MediaTypeFactory::getInstance()->createFromString(
-				'application/x-wine-extension-ini')
+				self::MEDIA_TYPE_ALTERNAVIE)
 		];
 	}
 
@@ -373,7 +377,10 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 		if (!isset(self::$supportedMediaTypeParameters))
 		{
 			self::$supportedMediaTypeParameters = [];
-			foreach ([] as $mediaType)
+			foreach ([
+				self::MEDIA_TYPE,
+				self::MEDIA_TYPE_ALTERNAVIE
+			] as $mediaType)
 			{
 				self::$supportedMediaTypeParameters[$mediaType] = [
 					self::PARAMETER_INDENT => true,

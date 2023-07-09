@@ -108,4 +108,31 @@ final class IniSerializationTest extends SerializerTestCaseBase
 				$name . 'file');
 		}
 	}
+
+	public function testParameters()
+	{
+		$this->assertSupportsMediaTypeParameter(
+			[
+				[
+					true,
+					'indent'
+				],
+				[
+					true,
+					'list-separator'
+				],
+				[
+					true,
+					'null-string'
+				],
+				[
+					true,
+					'single-value-key'
+				],
+				[
+					true,
+					'section-glue'
+				]
+			]);
+	}
 }

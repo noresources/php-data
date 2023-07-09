@@ -52,6 +52,48 @@ final class CsvSerializationTest extends SerializerTestCaseBase
 			], $serializer);
 	}
 
+	public function testParameters()
+	{
+		$this->assertSupportsMediaTypeParameter(
+			[
+				[
+					true,
+					'enclosure'
+				],
+				[
+					true,
+					'eol'
+				],
+				[
+					true,
+					'escape'
+				],
+				[
+					true,
+					'flatten'
+				],
+				[
+					true,
+					'separator'
+				],
+				[
+					true,
+					'heading',
+					'none'
+				],
+				[
+					false,
+					'heading',
+					'blah'
+				],
+				[
+					true,
+					'heading',
+					'row'
+				]
+			]);
+	}
+
 	public function testPOD()
 	{
 		if (!$this->canTestSerializer())
@@ -127,7 +169,8 @@ final class CsvSerializationTest extends SerializerTestCaseBase
 		$this->assertEquals($deserialized, $input,
 			'Serialization/Deserialization cycle');
 
-		$filename = __DIR__ . '/../reference/table.' . self::FILE_EXTENSION;
+		$filename = __DIR__ . '/../reference/table.' .
+			self::FILE_EXTENSION;
 		$deserializedFile = $serializer->unserializeFromFile($filename);
 
 		$this->assertEquals($input, $deserializedFile,
