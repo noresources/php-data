@@ -9,17 +9,16 @@
 namespace NoreSources\Data\Console\Command;
 
 use NoreSources\Container\Container;
+use NoreSources\Data\Console\Utility;
+use NoreSources\Data\Console\Option\MediaTypeOption;
+use NoreSources\Data\Console\Option\MediaTypeParameterListOption;
 use NoreSources\MediaType\MediaTypeException;
 use NoreSources\MediaType\MediaTypeFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use NoreSources\Data\Console\Option\MediaTypeOption;
-use NoreSources\Data\Console\Utility;
-use NoreSources\Data\Console\Option\MediaTypeParameterListOption;
 
 class ConvertCommand extends Command
 {
@@ -56,13 +55,15 @@ class ConvertCommand extends Command
 		OutputInterface $output)
 	{
 		$errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
-		$inputURI = $input->getArgument('input');
-		$outputURI = $input->getArgument('output');
-		$inputMediaType = $input->getOption('from');
-		$outputMediaType = $input->getOption('to');
 		$mediaTypeFactory = MediaTypeFactory::getInstance();
 		$manager = Utility::createSerializationManager($input, $output);
+
+		$inputURI = $input->getArgument('input');
+		$inputMediaType = $input->getOption('from');
 		$inputStream = \filter_var($inputURI, FILTER_VALIDATE_URL);
+
+		$outputURI = $input->getArgument('output');
+		$outputMediaType = $input->getOption('to');
 		$outputStream = \filter_Var($outputURI, FILTER_VALIDATE_URL);
 
 		$end = function ($code, $message) use ($output, &$inputStream,
@@ -219,26 +220,33 @@ class ConvertCommand extends Command
 		{
 
 			$inputUnserializers = [];
+			$unserializerType = 'stream';
 			if ($inputStream)
 				$inputUnserializers = $manager->getStreamUnserializersFor(
 					$inputStream, $inputMediaType);
 			else
+			{
+				$unserializerType = 'type';
 				$inputUnserializers = $manager->getFileUnserializersFor(
 					$inputURI, $inputMediaType);
+			}
 
 			$outputSerializers = [];
+			$serializerType = 'stream';
 			if ($outputStream)
 				$outputSerializers = $manager->getStreamSerializersFor(
 					$outputStream, null, $outputMediaType);
 			else
+			{
+				$serializerType = 'file';
 				$outputSerializers = $manager->getFileSerializersFor(
 					$outputURI, $outputMediaType);
+			}
 
 			$output->writeln(
-				'Input ' . ($inputStream ? 'stream ' : 'file ') .
-				$inputURI);
+				'Input ' . $unserializerType . ' ' . $inputURI);
 			$output->writeln(
-				' * Media type: ' . \strval($inputMediaType));
+				' * Media type: ' . $inputMediaType->jsonSerialize());
 			$output->writeln(
 				' * ' . \count($inputUnserializers) . ' deserializers');
 			$output->writeln(
@@ -250,10 +258,9 @@ class ConvertCommand extends Command
 					]));
 
 			$output->writeln(
-				'Output ' . ($outputStream ? 'stream ' : 'file ') .
-				$outputURI);
+				'Output ' . $serializerType . ' ' . $outputURI);
 			$output->writeln(
-				' * Media type: ' . \strval($outputMediaType));
+				' * Media type: ' . $outputMediaType->jsonSerialize());
 			$output->writeln(
 				' * ' . \count($outputSerializers) . ' deserializers');
 			$output->writeln(

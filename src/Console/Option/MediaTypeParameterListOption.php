@@ -8,9 +8,10 @@
  */
 namespace NoreSources\Data\Console\Option;
 
-use Symfony\Component\Console\Input\InputOption;
+use NoreSources\Http\ParameterMapSerializer;
 use NoreSources\MediaType\MediaTypeInterface;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 class MediaTypeParameterListOption extends InputOption
 {
@@ -34,13 +35,15 @@ class MediaTypeParameterListOption extends InputOption
 		$optionName)
 	{
 		$values = $input->getOption($optionName);
+		$p = $mediaType->getParameters();
 		foreach ($values as $value)
 		{
-			if (!\preg_match('/(.+?)=(.*)/', $value, $m))
-				throw new \InvalidArgumentException(
-					'Invalid ' . $optionName .
-					' media type parameter format "' . $value . '"');
-			$mediaType->getParameters()->offsetSet($m[1], $m[2]);
+			$parts = \explode('=', $value, 2);
+			if (\count($parts) == 1)
+				$value .= '=""';
+			elseif (empty($value))
+				$value .= '""';
+			ParameterMapSerializer::unserializeParameters($p, $value);
 		}
 	}
 }
