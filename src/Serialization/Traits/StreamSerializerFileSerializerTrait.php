@@ -8,6 +8,7 @@
  */
 namespace NoreSources\Data\Serialization\Traits;
 
+use NoreSources\Data\Serialization\SerializableContentInterface;
 use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
 use NoreSources\Data\Serialization\SerializationException;
 use NoreSources\Data\Utility\FileExtensionListInterface;
@@ -37,6 +38,10 @@ trait StreamSerializerFileSerializerTrait
 	private final function defaultIsSerializableToFile($filename, $data,
 		MediaTypeInterface $mediaType = null)
 	{
+		if (($this instanceof SerializableContentInterface) &&
+			!$this->isContentSerializable($data))
+			return false;
+
 		$testExtension = $this instanceof FileExtensionListInterface &&
 			\is_string($filename);
 		if ($testExtension && !$mediaType)
@@ -61,10 +66,14 @@ trait StreamSerializerFileSerializerTrait
 
 			if ($mediaType)
 			{
-				if ($this instanceof SerializableMediaTypeInterface)
-					return $this->isMediaTypeSerializable($mediaType);
-				elseif ($this instanceof MediaTypeListInterface)
-					return $this->matchMediaType($mediaType);
+				if (($this instanceof SerializableMediaTypeInterface) &&
+					!$this->isMediaTypeSerializable($mediaType))
+					return false;
+
+				if ($this instanceof MediaTypeListInterface)
+				{
+					// return $this->matchMediaType($mediaType);
+				}
 			}
 		}
 

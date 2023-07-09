@@ -25,6 +25,19 @@ use NoreSources\MediaType\MediaTypeInterface;
 use NoreSources\Text\Text;
 use NoreSources\Type\TypeDescription;
 
+/**
+ * Serialize data as a set of shell script variables.
+ *
+ * Supported media type parameters
+ * <ul>
+ * <li>variable-case=camel|macro|pascal|snake : Variable name code case</li>
+ * <li>interpreter=string : Target shellscriptdialect</li>
+ * <li>interpreter-version=semver : Target interpreter version</li>
+ * <li>collection=* : Indicates the given content is a collection of object</li>
+ * <li>key-property=string : When serializing collection of object. Indicates which element property
+ * to use as variable name prefix</li>
+ * </ul>
+ */
 class ShellscriptSerializer implements SerializableMediaTypeInterface,
 	SerializableContentInterface, DataSerializerInterface,
 	FileSerializerInterface, StreamSerializerInterface,
@@ -39,35 +52,37 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 	use StreamSerializerDataSerializerTrait;
 	use StreamSerializerFileSerializerTrait;
 
+	const MEDIA_TYPE = 'text/x-shellscript';
+
 	/**
 	 * Variable and key name style
 	 *
 	 * @var string
 	 */
-	const PARAMETER_STYLE = 'style';
+	const PARAMETER_VARIABLE_CASE = 'variable-case';
 
 	/**
 	 * camelCase variable names
 	 *
 	 * @var string
 	 */
-	const STYLE_CAMEL = 'camel';
+	const VARIABLE_CASE_CAMEL = 'camel';
 
 	/**
 	 * MACRO_CASE variable names
 	 *
 	 * @var string
 	 */
-	const STYLE_MACRO = 'macro';
+	const VARIABLE_CASE_MACRO = 'macro';
 
 	/**
 	 * PascalCase variable names
 	 *
 	 * @var string
 	 */
-	const STYLE_PASCAL = 'pascal';
+	const VARIABLE_CASE_PASCAL = 'pascal';
 
-	const STYLE_SNAKE = 'snake';
+	const VARIABLE_CASE_SNAKE = 'snake';
 
 	/**
 	 * Target interpreter
@@ -83,12 +98,67 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 	 */
 	const PARAMETER__INTERPRETER_VERSION = 'interpreter-version';
 
+	/**
+	 * Indicates input data is a collection of object/array
+	 *
+	 * @var string
+	 */
+	const PARAMETER_COLLECTION = 'collection';
+
+	/**
+	 * Collection element key property to use as variable name prefix
+	 *
+	 * @var string
+	 */
+	const PARAMETER_KEY_PROPERTY = 'key-property';
+
 	public function isContentSerializable($data)
 	{
+		return Container::isTraversable($data);
+	}
+
+	public function isSerializableToStream($stream, $data,
+		MediaTypeInterface $mediaType = null)
+	{
+		return $this->defaultIsSerializableToStream($stream, $data,
+			$mediaType) && $this->isSerializableTo($data, $mediaType);
+	}
+
+	public function isSerializableToFile($filename, $data,
+		MediaTypeInterface $mediaType = null)
+	{
+		return $this->defaultIsSerializableToFile($filename, $data,
+			$mediaType) && $this->isSerializableTo($data, $mediaType);
+	}
+
+	public function isSerializableTo($data,
+		MediaTypeInterface $mediaType = null)
+	{
+		if (!$this->defaultIsSerializableTo($data, $mediaType))
+			return false;
+
+		if (!Container::isTraversable($data))
+			return false;
+
 		$analyzer = Analyzer::getInstance();
 		$class = $analyzer->getCollectionClass($data);
-		return ($class & CollectionClass::DICTIONARY) ==
-			CollectionClass::DICTIONARY;
+
+		if (($class & CollectionClass::DICTIONARY) ==
+			CollectionClass::DICTIONARY)
+			return true;
+
+		if (!$this->dataIsCollection($mediaType))
+			return false;
+
+		$minDepth = $analyzer->getMinDepth($data);
+		if ($minDepth < 2)
+			return false;
+
+		$first = Container::firstValue($data);
+		$class = $analyzer->getCollectionClass($first);
+
+		return (($class & CollectionClass::DICTIONARY) ==
+			CollectionClass::DICTIONARY);
 	}
 
 	public function serializeToStream($stream, $data,
@@ -97,15 +167,24 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 		$variableNameTransformer = null;
 		$interpreter = null;
 		$interpreterVersion = null;
+		$dataIsCollection = false;
+		$keyProperty = null;
 		if ($mediaType)
 		{
 			$p = $mediaType->getParameters();
+
+			$keyProperty = Container::keyValue($p,
+				self::PARAMETER_KEY_PROPERTY, $keyProperty);
+			$dataIsCollection = Container::keyExists($p,
+				self::PARAMETER_COLLECTION) || ($keyProperty !== null);
+
 			$interpreter = Container::keyValue($p,
 				self::PARAMETER_INTERPRETER);
 			$interpreterVersion = Container::keyValue($p,
 				self::PARAMETER__INTERPRETER_VERSION);
 
-			if (($style = Container::keyValue($p, self::PARAMETER_STYLE)) &&
+			if (($style = Container::keyValue($p,
+				self::PARAMETER_VARIABLE_CASE)) &&
 				($method = 'to' . $style . 'Case') &&
 				\method_exists(Text::class, $method))
 			{
@@ -121,9 +200,29 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 		if ($variableNameTransformer)
 			$writer->setVariableNameTransformer(
 				$variableNameTransformer);
-		foreach ($data as $name => $value)
+
+		if ($dataIsCollection)
 		{
-			$writer->writeVariableDefinition($stream, $name, $value);
+			foreach ($data as $key => $entry)
+			{
+				if ($keyProperty)
+					$key = Container::keyValue($entry, $keyProperty,
+						$key);
+				foreach ($entry as $name => $value)
+				{
+					if (\is_numeric($key))
+						$name .= '_' . $key;
+					else
+						$name = $key . '_' . $name;
+					$writer->writeVariableDefinition($stream, $name,
+						$value);
+				}
+			}
+		}
+		else
+		{
+			foreach ($data as $name => $value)
+				$writer->writeVariableDefinition($stream, $name, $value);
 		}
 	}
 
@@ -131,7 +230,7 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(
-				'text/x-shellscript')
+				self::MEDIA_TYPE)
 		];
 	}
 
@@ -168,16 +267,18 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 		if (!isset(self::$supportedMediaTypeParameters))
 		{
 			self::$supportedMediaTypeParameters = [
-				'text/x-shellscript' => [
-					self::PARAMETER_STYLE => [
-						self::STYLE_CAMEL,
-						self::STYLE_MACRO,
-						self::STYLE_PASCAL,
-						self::STYLE_SNAKE
-					]
-				],
-				self::PARAMETER__INTERPRETER_VERSION => true,
-				self::PARAMETER_INTERPRETER => true
+				self::MEDIA_TYPE => [
+					self::PARAMETER_VARIABLE_CASE => [
+						self::VARIABLE_CASE_CAMEL,
+						self::VARIABLE_CASE_MACRO,
+						self::VARIABLE_CASE_PASCAL,
+						self::VARIABLE_CASE_SNAKE
+					],
+					self::PARAMETER__INTERPRETER_VERSION => true,
+					self::PARAMETER_INTERPRETER => true,
+					self::PARAMETER_COLLECTION => true,
+					self::PARAMETER_KEY_PROPERTY => true
+				]
 			];
 		}
 
@@ -189,6 +290,16 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 		return [
 			'sh'
 		];
+	}
+
+	private function dataIsCollection(
+		MediaTypeInterface $mediaType = null)
+	{
+		if (!$mediaType)
+			return false;
+		$p = $mediaType->getParameters();
+		return $p->has(self::PARAMETER_COLLECTION) ||
+			$p->has(self::PARAMETER_KEY_PROPERTY);
 	}
 
 	private static $supportedMediaTypeParameters;
