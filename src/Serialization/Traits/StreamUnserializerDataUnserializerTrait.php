@@ -27,7 +27,7 @@ trait StreamUnserializerDataUnserializerTrait
 			!$this->isMediaTypeUnserializable($mediaType))
 			return false;
 		if ($this instanceof UnserializableContentInterface)
-			return $this->isContentUnserializable($mediaType);
+			return $this->isContentUnserializable($data);
 		return true;
 	}
 

@@ -30,6 +30,13 @@ trait StreamSerializerFileSerializerTrait
 	public function isSerializableToFile($filename, $data,
 		MediaTypeInterface $mediaType = null)
 	{
+		return $this->defaultIsSerializableToFile($filename, $data,
+			$mediaType);
+	}
+
+	private final function defaultIsSerializableToFile($filename, $data,
+		MediaTypeInterface $mediaType = null)
+	{
 		$testExtension = $this instanceof FileExtensionListInterface &&
 			\is_string($filename);
 		if ($testExtension && !$mediaType)

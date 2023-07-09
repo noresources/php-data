@@ -22,12 +22,18 @@ trait StreamSerializerDataSerializerTrait
 	public function isSerializableTo($data,
 		MediaTypeInterface $mediaType = null)
 	{
+		return $this->defaultIsSerializableTo($data, $mediaType);
+	}
+
+	private final function defaultIsSerializableTo($data,
+		MediaTypeInterface $mediaType = null)
+	{
 		if ($mediaType &&
 			($this instanceof SerializableMediaTypeInterface) &&
 			!$this->isMediaTypeSerializable($mediaType))
 			return false;
 		if ($this instanceof SerializableContentInterface)
-			return $this->isContentSerializable($mediaType);
+			return $this->isContentSerializable($data);
 		return true;
 	}
 
