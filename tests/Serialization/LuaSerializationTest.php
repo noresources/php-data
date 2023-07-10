@@ -22,6 +22,8 @@ final class LuaSerializationTest extends SerializerTestCaseBase
 
 	const CLASS_NAME = LuaSerializer::class;
 
+	const MEDIA_TYPE = 'text/x-lua';
+
 	public function testSerialization()
 	{
 		$directory = __DIR__ . '/../reference';
@@ -81,5 +83,48 @@ final class LuaSerializationTest extends SerializerTestCaseBase
 				FileSerializerInterface::class,
 				FileExtensionListInterface::class
 			], $serializer);
+	}
+
+	public function testParameters()
+	{
+		if (!$this->canTestSerializer())
+			return;
+
+		$serializer = $this->createSerializer();
+
+		$mediaType = MediaTypeFactory::createFromString(
+			self::MEDIA_TYPE);
+
+		$this->assertSupportsMediaTypeParameter(
+			[
+				'mode parameter' => [
+					true,
+					'mode'
+				],
+				'indent' => [
+					true,
+					'indent',
+					'tab'
+				],
+				'unexpected parameter' => [
+					false,
+					'unholy'
+				],
+				'raw mode' => [
+					true,
+					'mode',
+					'raw'
+				],
+				'module mode' => [
+					true,
+					'mode',
+					'module'
+				],
+				'ugly mode' => [
+					false,
+					'mode',
+					'ugly'
+				]
+			], $serializer, $mediaType);
 	}
 }

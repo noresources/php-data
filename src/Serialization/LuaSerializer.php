@@ -41,6 +41,20 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 	use StreamSerializerFileSerializerTrait;
 
 	/**
+	 * Unregisted media type
+	 *
+	 * @var string
+	 */
+	const MEDIA_TYPE = 'text/x-lua';
+
+	/**
+	 * Data presentation mode
+	 *
+	 * @var string
+	 */
+	const PARAMETER_MODE = 'mode';
+
+	/**
 	 * Export value "as is"
 	 *
 	 * This is the default behavior of the serializeData() method
@@ -58,44 +72,65 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 	 */
 	const MODE_MODULE = 'module';
 
+	/**
+	 * Indentation character(s)
+	 *
+	 * @var string
+	 */
+	const PARAMETER_INDENT = 'indent';
+
 	public $indentation = ' ';
 
 	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
-		$prefix = '';
+		$options = [
+			self::PARAMETER_INDENT => $this->indentation,
+			self::PARAMETER_MODE => self::MODE_RAW
+		];
+
 		$meta = \stream_get_meta_data($stream);
 		switch (Container::keyValue($meta, 'wrapper_type', 'undefined'))
 		{
 			case 'file':
-				$prefix = 'return ';
+			case 'plainfile':
+				$options[self::PARAMETER_MODE] = self::MODE_MODULE;
 			default:
 			break;
 		}
+
 		if ($mediaType)
 		{
-			if (\is_string($mediaType))
-				$mediaType = MediaTypeFactory::getInstance()->createFromMedia(
-					$mediaType);
-
-			if (($mediaType instanceof MediaTypeInterface) &&
-				($mode = Container::keyValue(
-					$mediaType->getParameters(), 'mode')) &&
-				(\strcasecmp($mode, self::MODE_MODULE) == 0))
+			$indentation = Container::keyValue(
+				$mediaType->getParameters(), self::PARAMETER_INDENT,
+				$this->indentation);
+			switch (\mb_strtolower($indentation))
 			{
-				$prefix = 'return ';
+				case 'tab':
+					$indentation = "\t";
+				break;
+				case 'space':
+					$indentation = ' ';
+				break;
 			}
+
+			$options[self::PARAMETER_INDENT] = $indentation;
+			$options[self::PARAMETER_MODE] = Container::keyValue(
+				$mediaType->getParameters(), self::PARAMETER_MODE,
+				$options[self::PARAMETER_MODE]);
 		}
 
-		fwrite($stream, $prefix);
+		if (\strcasecmp($options[self::PARAMETER_MODE],
+			self::MODE_MODULE) == 0)
+			fwrite($stream, 'require ');
 
 		if (Container::isTraversable($data))
-			return $this->serializeTable($stream, $data);
+			return $this->serializeTable($stream, $data, $options);
 
-		$this->serializeLiteral($stream, $data);
+		$this->serializeLiteral($stream, $data, $options);
 	}
 
-	protected function serializeTableKey($stream, $key)
+	protected function serializeTableKey($stream, $key, $options)
 	{
 		if (\preg_match(chr(1) . self::LUA_IDENTIFIER_PATTERN . chr(1),
 			$key))
@@ -106,22 +141,24 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 			'["' . \addslashes(TypeConversion::toString($key)) . '"]');
 	}
 
-	protected function serializeTable($stream, $table, $level = 0)
+	protected function serializeTable($stream, $table, $options,
+		$level = 0)
 	{
 		$first = true;
 		\fwrite($stream, "{\n");
-		$pad = \str_repeat($this->indentation, $level);
+		$pad = \str_repeat($options[self::PARAMETER_INDENT], $level);
 		if (Container::isIndexed($table))
 		{
 			foreach ($table as $value)
 			{
 				if (!$first)
 					\fwrite($stream, ",\n");
-				\fwrite($stream, $this->indentation . $pad);
+				\fwrite($stream, $options[self::PARAMETER_INDENT] . $pad);
 				if (Container::isTraversable($value))
-					$this->serializeTable($stream, $value, $level + 1);
+					$this->serializeTable($stream, $value, $options,
+						$level + 1);
 				else
-					$this->serializeLiteral($stream, $value);
+					$this->serializeLiteral($stream, $value, $options);
 				$first = false;
 			}
 		}
@@ -132,13 +169,14 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 				if (!$first)
 					\fwrite($stream, ",\n");
 
-				\fwrite($stream, $this->indentation . $pad);
-				$this->serializeTableKey($stream, $key);
+				\fwrite($stream, $options[self::PARAMETER_INDENT] . $pad);
+				$this->serializeTableKey($stream, $key, $options);
 				\fwrite($stream, ' = ');
 				if (Container::isTraversable($value))
-					$this->serializeTable($stream, $value, $level + 1);
+					$this->serializeTable($stream, $value, $options,
+						$level + 1);
 				else
-					$this->serializeLiteral($stream, $value);
+					$this->serializeLiteral($stream, $value, $options);
 				$first = false;
 			}
 		}
@@ -146,7 +184,7 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 		\fwrite($stream, "\n" . $pad . '}');
 	}
 
-	protected function serializeLiteral($stream, $value)
+	protected function serializeLiteral($stream, $value, $options)
 	{
 		if (\is_null($value))
 			return \fwrite($stream, 'nil');
@@ -158,11 +196,29 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 		\fwrite($stream, '"' . \addslashes($value) . '"');
 	}
 
+	protected function getSupportedMediaTypeParameterValues()
+	{
+		if (!isset(self::$supportedMediaTypeParameters))
+		{
+			self::$supportedMediaTypeParameters = [
+				self::MEDIA_TYPE => [
+					self::PARAMETER_MODE => [
+						self::MODE_RAW,
+						self::MODE_MODULE
+					],
+					self::PARAMETER_INDENT => true
+				]
+			];
+		}
+
+		return self::$supportedMediaTypeParameters;
+	}
+
 	public function buildMediaTypeList()
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(
-				'text/x-lua')
+				self::MEDIA_TYPE)
 		];
 	}
 
@@ -172,6 +228,8 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 			'lua'
 		];
 	}
+
+	private static $supportedMediaTypeParameters;
 
 	const INTEGER_PATTERN = '^[1-9][0-9]*$';
 
