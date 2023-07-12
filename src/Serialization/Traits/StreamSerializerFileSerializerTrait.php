@@ -35,7 +35,7 @@ trait StreamSerializerFileSerializerTrait
 			$mediaType);
 	}
 
-	private final function defaultIsSerializableToFile($filename, $data,
+	private function defaultIsSerializableToFile($filename, $data,
 		MediaTypeInterface $mediaType = null)
 	{
 		if (($this instanceof SerializableContentInterface) &&

@@ -27,7 +27,7 @@ trait StreamSerializerBaseTrait
 			$mediaType);
 	}
 
-	private final function defaultIsSerializableToStream($stream, $data,
+	private function defaultIsSerializableToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
 		if (($this instanceof SerializableContentInterface) &&

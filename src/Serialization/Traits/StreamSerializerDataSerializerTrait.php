@@ -25,7 +25,7 @@ trait StreamSerializerDataSerializerTrait
 		return $this->defaultIsSerializableTo($data, $mediaType);
 	}
 
-	private final function defaultIsSerializableTo($data,
+	private function defaultIsSerializableTo($data,
 		MediaTypeInterface $mediaType = null)
 	{
 		if ($mediaType &&
