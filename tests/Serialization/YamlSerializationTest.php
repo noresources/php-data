@@ -49,6 +49,9 @@ final class YamlSerializationTest extends SerializerTestCaseBase
 
 	public function testParameters()
 	{
+		if (!$this->canTestSerializer())
+			return;
+		
 		$this->assertSupportsMediaTypeParameter(
 			[
 				[
