@@ -1,0 +1,26 @@
+# systemd unit / dbus service sample
+# * Text value are escaped like shell arguments
+# * Text value can continue on next line if next line starts with whitespace.
+# File may contain comment lines using "#"
+
+[Service]
+
+##############################################################################
+## Core requirements
+##
+
+Type=notify
+
+User=mysql
+Group=mysql
+
+ExecStartPre=/usr/bin/install -m 755 -o mysql -g root -d /var/run/mysqld
+
+ExecStartPre=/bin/sh -c "[ ! -e /usr/bin/galera_recovery ] && VAR= || \
+ VAR=`cd /usr/bin/..; /usr/bin/galera_recovery --defaults-file=/etc/mysql/conf.d/my%I.cnf`; [ $? -eq 0 ] \
+ && systemctl set-environment _WSREP_START_POSITION%I=$VAR || exit 1"
+
+ExecStart=/usr/sbin/mysqld --defaults-file=/etc/mysql/conf.d/my%I.cnf \
+  $_WSREP_NEW_CLUSTER $_WSREP_START_POSITION%I $MYSQLD_OPTS
+ExecStartPost=/bin/sh -c "systemctl unset-environment _WSREP_START_POSITION%I"
+

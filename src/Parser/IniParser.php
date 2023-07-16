@@ -8,6 +8,7 @@
  */
 namespace NoreSources\Data\Parser;
 
+use NoreSources\Bitset;
 use NoreSources\Container\Container;
 
 /**
@@ -17,11 +18,13 @@ class IniParser
 {
 
 	/**
-	 * Key-value lines MAY be indented
+	 * Key-value lines MAY be indented.
+	 *
+	 * Example: .gitconfig files.
 	 *
 	 * @var number
 	 */
-	const KEY_VALUE_INDENTED = 0x01;
+	const KEY_VALUE_INDENTED = Bitset::BIT_01;
 
 	/**
 	 * A line starting with at least one linear whitespace will be considered as th next line of the
@@ -33,7 +36,7 @@ class IniParser
 	 *
 	 * @var number
 	 */
-	const VALUE_UNQUOTED_MULTILINE = 0x02;
+	const VALUE_UNQUOTED_MULTILINE = Bitset::BIT_02;
 
 	/**
 	 * A backslash character '\' at the end of a unquoted value indicates the line content continues
@@ -104,7 +107,7 @@ class IniParser
 	 * @param string $text
 	 *        	INI file content line.
 	 * @throws ParserException
-	 * @return boolean TRUE
+	 * @return boolean TRUE if line was parsed, FALSE if line was ignored
 	 */
 	public function parseLine($text)
 	{
@@ -139,13 +142,21 @@ class IniParser
 				$this->lineNumber);
 		}
 
-		if (empty($text))
+		if (empty($ltrim))
 			return true;
 
 		if ($text[0] == '[')
 		{
 			$this->finalizeEntry();
 			return $this->readSection($text);
+		}
+
+		if (!\preg_match('/^[a-z_]/i', $text))
+		{
+			// Comments break line continuation
+			$this->continue = false;
+			// Ignore with "warning"
+			return false;
 		}
 
 		$this->finalizeEntry();

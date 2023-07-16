@@ -72,7 +72,11 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 
 	const MEDIA_TYPE = 'text/x-ini';
 
-	const MEDIA_TYPE_ALTERNAVIE = 'application/x-wine-extension-ini';
+	const MEDIA_TYPE_WINE = 'application/x-wine-extension-ini';
+
+	const MEDIA_TYPE_DBUS_SERVICE = 'text/x-dbus-service';
+
+	const MEDIA_TYPE_SYSTEMD_UNIT = 'text/x-systemd-unit';
 
 	/**
 	 * Key-value line inside section MAY be indented
@@ -107,12 +111,24 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	/**
 	 * Escape character
 	 *
-	 * If not set, single and double quotes are escpaed using the "quote swap" method.
-	 * Ex: "The \"quoted\" string" -> "The "'"'"quoted"'"'" string"
+	 * Possible values are
+	 * <ul>
+	 * <li>quote: Quote-swaping mode. Single and double quotes are escpaed using the "quote swap"
+	 * method.
+	 * Ex: "The \"quoted\" string" -> "The "'"'"quoted"'"'" string"</li>
+	 * <li>none: Do not escape.</li>
+	 * <li>"" (empty string): Same as "quote"</li>
+	 * <li>any character: A character to prepend before any meta character</li>
+	 * </ul>
+	 *
 	 *
 	 * @var string
 	 */
 	const PARAMETER_ESCAPE = 'escape';
+
+	const ESCAPE_NONE = 'none';
+
+	const ESCAPE_QUOTE_SWAP = 'quote';
 
 	/**
 	 * Key used to indication INI contains a single value
@@ -131,7 +147,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 
 		if (!isset($this->parser))
 			$this->parser = new IniParser();
-		$parserFlags = $this->getParserFlags($options);
+		$parserFlags = $this->getParserFlags($options, $mediaType);
 		$data = $this->parser($data, $parserFlags);
 
 		return $this->postprocessDeserialization($data);
@@ -144,7 +160,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 
 		if (!isset($this->parser))
 			$this->parser = new IniParser();
-		$parserFlags = $this->getParserFlags($options);
+		$parserFlags = $this->getParserFlags($options, $mediaType);
 		$this->parser->initialize($parserFlags);
 		while (($text = \fgets($stream)))
 		{
@@ -299,6 +315,16 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	protected function serializeEntryStringValueToStream($stream, $value,
 		$options)
 	{
+		$escape = Container::keyValue($options, self::PARAMETER_ESCAPE);
+		if (\strcasecmp($escape, self::ESCAPE_NONE) == 0)
+		{
+			\fwrite($stream, $value);
+			return;
+		}
+
+		if (\strcasecmp($escape, self::ESCAPE_QUOTE_SWAP) == 0)
+			$escape = null;
+
 		$characters = [
 			// PHP built-in parser special characters
 			'!',
@@ -309,7 +335,6 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 			"\r",
 			"\n"
 		];
-		$escape = Container::keyValue($options, self::PARAMETER_ESCAPE);
 		if (!(empty($escape) || \in_array($escape, $characters)))
 			$characters[] = $escape;
 
@@ -364,12 +389,17 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 
 	public function buildMediaTypeList()
 	{
-		return [
-			MediaTypeFactory::getInstance()->createFromString(
-				self::MEDIA_TYPE),
-			MediaTypeFactory::getInstance()->createFromString(
-				self::MEDIA_TYPE_ALTERNAVIE)
-		];
+		$factory = MediaTypeFactory::getInstance();
+		return Container::mapValues(
+			[
+				self::MEDIA_TYPE_DBUS_SERVICE,
+				self::MEDIA_TYPE_SYSTEMD_UNIT,
+				self::MEDIA_TYPE_WINE,
+				self::MEDIA_TYPE
+			], [
+				$factory,
+				'createFromString'
+			]);
 	}
 
 	protected function getSupportedMediaTypeParameterValues()
@@ -379,7 +409,9 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 			self::$supportedMediaTypeParameters = [];
 			foreach ([
 				self::MEDIA_TYPE,
-				self::MEDIA_TYPE_ALTERNAVIE
+				self::MEDIA_TYPE_WINE,
+				self::MEDIA_TYPE_SYSTEMD_UNIT,
+				self::MEDIA_TYPE_DBUS_SERVICE
 			] as $mediaType)
 			{
 				self::$supportedMediaTypeParameters[$mediaType] = [
@@ -516,6 +548,17 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 		];
 		if ($mediaType)
 		{
+			$s = \strval($mediaType);
+			if (\strcasecmp($s, self::MEDIA_TYPE_WINE) == 0)
+			{
+				$options[self::PARAMETER_NULL_STRING] = 'null';
+			}
+			elseif (\strcasecmp($s, self::MEDIA_TYPE_DBUS_SERVICE) == 0 ||
+				\strcasecmp($s, self::MEDIA_TYPE_SYSTEMD_UNIT) == 0)
+			{
+				$options[self::PARAMETER_ESCAPE] = self::ESCAPE_NONE;
+			}
+
 			$p = $mediaType->getParameters();
 			foreach ($options as $key => $value)
 			{
@@ -531,11 +574,23 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 		return $options;
 	}
 
-	protected function getParserFlags($options)
+	protected function getParserFlags($options,
+		MediaTypeInterface $mediaType = null)
 	{
 		$flags = 0;
 		if ($options[self::PARAMETER_INDENT])
 			$flags |= IniParser::KEY_VALUE_INDENTED;
+
+		if (!$mediaType)
+			return $flags;
+
+		$s = \strval($mediaType);
+		if (\strcasecmp($s, self::MEDIA_TYPE_SYSTEMD_UNIT) == 0 ||
+			\strcasecmp($s, self::MEDIA_TYPE_DBUS_SERVICE) == 0)
+		{
+			$flags |= IniParser::VALUE_UNQUOTED_BACKSLASH_CONTINUE;
+		}
+
 		return $flags;
 	}
 
