@@ -17,7 +17,7 @@ class IniParserTest extends \PHPUnit\Framework\TestCase
 
 	public function testLine()
 	{
-		$defaultFlags = IniParser::VALUE_UNQUOTED_MULTILINE;
+		$defaultFlags = IniParser::UNQUOTED_VALUE_MULTILINE;
 		$parser = new IniParser();
 		$tests = [
 			'section' => [
@@ -79,7 +79,7 @@ class IniParserTest extends \PHPUnit\Framework\TestCase
 			],
 			'continue' => [
 				'flags' => ($defaultFlags |
-				IniParser::VALUE_UNQUOTED_BACKSLASH_CONTINUE),
+				IniParser::UNQUOTED_VALUE_BACKSLASH_CONTINUE),
 				'lines' => [
 					'foo=bar \\',
 					'baz'
@@ -87,11 +87,45 @@ class IniParserTest extends \PHPUnit\Framework\TestCase
 				'expected' => [
 					'foo' => 'bar baz'
 				]
+			],
+			'duplicate override' => [
+				'lines' => [
+					'foo=bar',
+					'foo=baz'
+				],
+				'expected' => [
+					'foo' => 'baz'
+				]
+			],
+			'duplicate glue' => [
+				'duplicatedKeyMode' => IniParser::DUPLICATED_KEY_CONCATENATE,
+				'lines' => [
+					'foo=bar',
+					'foo=baz'
+				],
+				'expected' => [
+					'foo' => 'bar,baz'
+				]
+			],
+			'duplicate array' => [
+				'duplicatedKeyMode' => IniParser::DUPLICATED_KEY_ARRAY,
+				'lines' => [
+					'foo=bar',
+					'foo=baz'
+				],
+				'expected' => [
+					'foo' => [
+						'bar',
+						'baz'
+					]
+				]
 			]
 		];
 
 		foreach ($tests as $label => $test)
 		{
+			$parser->duplicatedKeyMode = Container::keyValue($test,
+				'duplicatedKeyMode', IniParser::DUPLICATED_KEY_OVERRIDE);
 			$flags = Container::keyValue($test, 'flags', $defaultFlags);
 			$lines = $test['lines'];
 			if (\is_string($lines))

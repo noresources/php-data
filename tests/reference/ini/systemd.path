@@ -1,0 +1,10 @@
+[Unit]
+Description=A systemd path watcher unit may contains duplicated keys
+
+[Path]
+PathModified=/tmp/foo
+PathExists=/tmp/bar
+PathExists=/tmp/baz
+
+[Install]
+WantedBy=multi-user.target

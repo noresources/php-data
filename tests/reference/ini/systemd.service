@@ -1,0 +1,7 @@
+[Unit]
+Description=systemd service descriptor
+
+[Service]
+ExecStart=/bin/echo "Hello world" \
+	&& sleep 5 \
+	&& /bin/echo 'Good bye!'

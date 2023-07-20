@@ -30,13 +30,13 @@ class IniParser
 	 * A line starting with at least one linear whitespace will be considered as th next line of the
 	 * current value
 	 *
-	 * This flag is incompatible with VALUE_UNQUOTED_MULTILINE
+	 * This flag is incompatible with UNQUOTED_VALUE_MULTILINE
 	 *
 	 * This flag is incompatible with KEY_VALUE_INDENTED
 	 *
 	 * @var number
 	 */
-	const VALUE_UNQUOTED_MULTILINE = Bitset::BIT_02;
+	const UNQUOTED_VALUE_MULTILINE = Bitset::BIT_02;
 
 	/**
 	 * A backslash character '\' at the end of a unquoted value indicates the line content continues
@@ -44,7 +44,44 @@ class IniParser
 	 *
 	 * @var number
 	 */
-	const VALUE_UNQUOTED_BACKSLASH_CONTINUE = 0x04;
+	const UNQUOTED_VALUE_BACKSLASH_CONTINUE = Bitset::BIT_03;
+
+	/**
+	 * When a key appears more than once, the last key value prevails.
+	 *
+	 * @var unknown
+	 */
+	const DUPLICATED_KEY_OVERRIDE = 0;
+
+	/**
+	 * When a key appears more than once, concatenate values using the value list concatenation
+	 * string.
+	 *
+	 * @var integer
+	 */
+	const DUPLICATED_KEY_CONCATENATE = 1;
+
+	/**
+	 * When a key appears more than once, values are added to an array of strings.
+	 *
+	 * @var integer
+	 */
+	const DUPLICATED_KEY_ARRAY = 2;
+
+	/**
+	 * Duplicated key processing mode.
+	 *
+	 *
+	 * @var integer
+	 */
+	public $duplicatedKeyMode = self::DUPLICATED_KEY_OVERRIDE;
+
+	/**
+	 * Value concatenation string for DUPLICATED_KEY_CONCATENATE mode
+	 *
+	 * @var string
+	 */
+	public $valueConcatenationGlue = ',';
 
 	public function __construct()
 	{
@@ -121,7 +158,7 @@ class IniParser
 
 		if ($ltrim != $text)
 		{
-			$f = self::VALUE_UNQUOTED_MULTILINE;
+			$f = self::UNQUOTED_VALUE_MULTILINE;
 			if (($this->flags & $f) == $f && $this->key !== false &&
 				$this->value !== false)
 			{
@@ -240,7 +277,7 @@ class IniParser
 
 		if (!$this->quote)
 		{
-			$f = self::VALUE_UNQUOTED_BACKSLASH_CONTINUE;
+			$f = self::UNQUOTED_VALUE_BACKSLASH_CONTINUE;
 			if (($this->flags & $f) == $f)
 			{
 				$length = \strlen($this->value);
@@ -267,15 +304,42 @@ class IniParser
 		{
 			if (!Container::keyExists($this->data, $this->section))
 				$this->data[$this->section] = [];
-			$this->data[$this->section][$this->key] = $this->value;
+			$this->assignValue($this->data[$this->section], $this->key,
+				$this->value);
 		}
 		else
-		{
-			$this->data[$this->key] = $this->value;
-		}
+			$this->assignValue($this->data, $this->key, $this->value);
 
 		$this->key = $this->value = $this->quote = $this->continue = false;
 		return true;
+	}
+
+	private function assignValue(&$array, $key, $value)
+	{
+		if (!Container::keyExists($array, $key))
+		{
+			$array[$key] = $value;
+			return;
+		}
+
+		switch ($this->duplicatedKeyMode)
+		{
+			case self::DUPLICATED_KEY_ARRAY:
+				if (!\is_array($array[$key]))
+					$array[$key] = [
+						$array[$key]
+					];
+				$array[$key][] = $value;
+			break;
+			case self::DUPLICATED_KEY_CONCATENATE:
+				if (\strlen($array[$key]))
+					$array[$key] .= $this->valueConcatenationGlue;
+				$array[$key] .= $value;
+			break;
+			default:
+				$array[$key] = $value;
+			break;
+		}
 	}
 
 	private function extractLine(&$line, &$eol, $text)

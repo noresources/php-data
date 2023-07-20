@@ -14,6 +14,7 @@ use NoreSources\Data\Serialization\StreamUnserializerInterface;
 use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\MediaType\MediaTypeFactory;
 
 final class IniSerializationTest extends SerializerTestCaseBase
 {
@@ -107,6 +108,41 @@ final class IniSerializationTest extends SerializerTestCaseBase
 				\parse_ini_file($filename, INI_SCANNER_TYPED), $actual,
 				$name . 'file');
 		}
+	}
+
+	public function testSystemdUnit()
+	{
+		$pathUnitFilename = __DIR__ . '/../reference/ini/systemd.path';
+		$this->assertFileExists($pathUnitFilename,
+			'systemd path unit file exists');
+		$serializer = $this->createSerializer();
+
+		$mediaType = MediaTypeFactory::getInstance()->createFromString(
+			IniSerializer::MEDIA_TYPE_SYSTEMD_UNIT);
+		$pathUnit = $serializer->unserializeFromFile($pathUnitFilename,
+			$mediaType);
+		$this->assertArrayHasKey('Path', $pathUnit,
+			'Data has Path section');
+		$path = $pathUnit['Path'];
+		$this->assertArrayHasKey('PathExists', $path,
+			'Path section has PathExists');
+		$this->assertEquals([
+			'/tmp/bar',
+			'/tmp/baz'
+		], $path['PathExists'],
+			'Duplicated PathExists becames array value');
+
+		$suffix = null;
+		$extension = 'path';
+		$method = __METHOD__;
+		$derivedFilename = $this->getDerivedFilename($method, $suffix,
+			$extension);
+		$this->assertCreateFileDirectoryPath($derivedFilename,
+			'systemd.path re-serialization');
+		$serializer->serializeToFile($derivedFilename, $pathUnit,
+			$mediaType);
+		$this->assertFileEquals($pathUnitFilename, $derivedFilename,
+			'systemd.path re-serialization');
 	}
 
 	public function testParameters()

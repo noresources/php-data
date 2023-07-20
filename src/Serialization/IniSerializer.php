@@ -36,7 +36,6 @@ use NoreSources\MediaType\MediaTypeInterface;
  *
  * Supported media type parameters
  * <ul>
- * <li>
  * <li>indent : Indent key-value line when serializing. Accept white space before key-value when
  * deserializing</li>
  * <li>list-separator : Use this glue to implode leaf key values that are indexed array</li>
@@ -46,7 +45,8 @@ use NoreSources\MediaType\MediaTypeInterface;
  * <li>escape : Character to use to escape quotes. If not set, use the same strategy as PHP built-in
  * parser</li>
  * <li>single-value-key : Use this string as key when serializing POD value</li>
- *
+ * <li>duplicated-key=override|concatenate|list</li>
+ * <li>list=duplicate-key|concatenate</li>
  * </ul>
  */
 class IniSerializer implements UnserializableMediaTypeInterface,
@@ -137,6 +137,54 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	 */
 	const PARAMETER_SINGLE_VALUE_KEY = 'single-value-key';
 
+	/**
+	 * Duplicated key processing mode
+	 *
+	 * Expected values are
+	 * <ul>
+	 * <li>override</li>
+	 * <li>concatenate</li>
+	 * <li>list</li>
+	 * </ul>
+	 *
+	 * <ul>
+	 * <li>
+	 * <code>duplicated-key=list</code> is equivalent to <code>list=duplicate-key</code>
+	 * </li>
+	 * <li>
+	 * <code>duplicated-key=concatenate</code> is equivalent to <code>list=concatenate</code>
+	 * </li>
+	 * </ul>
+	 *
+	 * @var string
+	 */
+	const PARAMETER_DUPLICATED_KEY = 'duplicated-key';
+
+	/**
+	 * Value list serialization mode
+	 *
+	 * Expected values are
+	 * <ul>
+	 * <li>concatenate</li>
+	 * <li>duplicate-key</li>
+	 * </ul>
+	 *
+	 * See also <code>PARAMETER_DUPLICATED_KEY</code>
+	 *
+	 * @var string
+	 */
+	const PARAMETER_LIST = 'list';
+
+	const DUPLICATED_KEY_OVERRIDE = 'override';
+
+	const DUPLICATED_KEY_CONCATENATE = 'concatenate';
+
+	const LIST_CONCATENATE = self::DUPLICATED_KEY_CONCATENATE;
+
+	const DUPLICATED_KEY_ARRAY = 'list';
+
+	const LIST_DUPLICATE_KEY = 'duplicate-key';
+
 	public function __construct()
 	{}
 
@@ -145,10 +193,15 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	{
 		$options = $this->getOptions($mediaType);
 
-		if (!isset($this->parser))
-			$this->parser = new IniParser();
+		$parser = new IniParser();
+		if (($mode = $this->getParserDuplicatedKeyMode($options)) !==
+			null)
+			$parser->duplicatedKeyMode = $mode;
+		$parser->valueConcatenationGlue = Container::keyValue($options,
+			self::PARAMETER_LIST_SEPARATOR);
+
 		$parserFlags = $this->getParserFlags($options, $mediaType);
-		$data = $this->parser($data, $parserFlags);
+		$data = $parser($data, $parserFlags);
 
 		return $this->postprocessDeserialization($data);
 	}
@@ -158,16 +211,20 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	{
 		$options = $this->getOptions($mediaType);
 
-		if (!isset($this->parser))
-			$this->parser = new IniParser();
+		$parser = new IniParser();
+		if (($mode = $this->getParserDuplicatedKeyMode($options)) !==
+			null)
+			$parser->duplicatedKeyMode = $mode;
+		$parser->valueConcatenationGlue = Container::keyValue($options,
+			self::PARAMETER_LIST_SEPARATOR);
 		$parserFlags = $this->getParserFlags($options, $mediaType);
-		$this->parser->initialize($parserFlags);
+		$parser->initialize($parserFlags);
 		while (($text = \fgets($stream)))
 		{
 			$trimmed = \rtrim($text, "\r\n");
 			try
 			{
-				$this->parser->parseLine($trimmed,
+				$parser->parseLine($trimmed,
 					\substr($text, \strlen($trimmed)));
 			}
 			catch (ParserException $e)
@@ -175,7 +232,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 				throw new SerializationException($e->getMessage());
 			}
 		}
-		$data = $this->parser->finalize();
+		$data = $parser->finalize();
 
 		return $this->postprocessDeserialization($data, $options);
 	}
@@ -204,6 +261,10 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 			$glue = Container::keyValue($options,
 				self::PARAMETER_SECTION_GLUE, ',');
 			$section = Container::implodeValues($keys, $glue);
+			$p = \ftell($stream);
+			if ($p)
+				\fwrite($stream, PHP_EOL);
+
 			\fwrite($stream, '[' . $section . ']' . PHP_EOL);
 		}
 
@@ -245,22 +306,43 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 			$analyzer = Analyzer::getInstance();
 			$class = $analyzer->getCollectionClass($data);
 			$depth = $analyzer->getMaxDepth($data);
+
 			$separator = Container::keyValue($options,
-				self::PARAMETER_LIST_SEPARATOR);
-			if (($depth == 1) && $separator &&
+				self::PARAMETER_LIST_SEPARATOR, '');
+			$list = Container::keyValue($options, self::PARAMETER_LIST);
+			if (($depth == 1) && $list &&
 				($class & CollectionClass::LIST) == CollectionClass::LIST)
 			{
-
-				$s = false;
-				foreach ($data as $value)
+				if ($list == self::LIST_CONCATENATE)
 				{
-					if ($s)
-						\fwrite($stream, $separator);
-					$s = true;
-					$this->serializeEntryValueToStream($stream, $value,
-						$options);
+					$s = false;
+					foreach ($data as $value)
+					{
+						if ($s)
+							\fwrite($stream, $separator);
+						$s = true;
+						$this->serializeEntryValueToStream($stream,
+							$value, $options);
+					}
+					\fwrite($stream, PHP_EOL);
 				}
-				\fwrite($stream, PHP_EOL);
+				elseif ($list == self::LIST_DUPLICATE_KEY)
+				{
+					$follow = false;
+					foreach ($data as $value)
+					{
+						if ($follow)
+						{
+							$this->serializeEntryKeyToStream($stream,
+								$key, $options);
+							\fwrite($stream, '=');
+						}
+						$follow = true;
+						$this->serializeEntryValueToStream($stream,
+							$value, $options);
+						\fwrite($stream, PHP_EOL);
+					}
+				}
 				return;
 			}
 			else
@@ -416,6 +498,15 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 			{
 				self::$supportedMediaTypeParameters[$mediaType] = [
 					self::PARAMETER_INDENT => true,
+					self::PARAMETER_DUPLICATED_KEY => [
+						self::DUPLICATED_KEY_ARRAY,
+						self::DUPLICATED_KEY_CONCATENATE,
+						self::DUPLICATED_KEY_OVERRIDE
+					],
+					self::PARAMETER_LIST => [
+						self::LIST_CONCATENATE,
+						self::LIST_DUPLICATE_KEY
+					],
 					self::PARAMETER_LIST_SEPARATOR => true,
 					self::PARAMETER_SECTION_GLUE => true,
 					self::PARAMETER_NULL_STRING => true,
@@ -501,10 +592,21 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 			return $value;
 		if (\strpos($value, PHP_EOL) !== false)
 			return $value;
+
+		/**
+		 *
+		 * @todo use duplicated-key/list params
+		 * @var Ambiguous $separator
+		 */
+
 		$separator = Container::keyValue($options,
 			self::PARAMETER_LIST_SEPARATOR);
-		if (empty($separator))
+		$listMode = Container::keyValue($options, self::PARAMETER_LIST);
+		$isPlain = \strcasecmp($listMode, self::LIST_CONCATENATE) ||
+			empty($separator);
+		if ($isPlain)
 			return $this->parseTextValue($value, $options);
+
 		$list = Container::mapValues(\str_getcsv($value, $separator),
 			function ($v) {
 				return \trim($v, " \t");
@@ -544,7 +646,9 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 			self::PARAMETER_SECTION_GLUE => null,
 			self::PARAMETER_NULL_STRING => '',
 			self::PARAMETER_ESCAPE => null,
-			self::PARAMETER_SINGLE_VALUE_KEY => '_'
+			self::PARAMETER_SINGLE_VALUE_KEY => '_',
+			self::PARAMETER_DUPLICATED_KEY => self::DUPLICATED_KEY_OVERRIDE,
+			self::PARAMETER_LIST => self::LIST_CONCATENATE
 		];
 		if ($mediaType)
 		{
@@ -557,6 +661,8 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 				\strcasecmp($s, self::MEDIA_TYPE_SYSTEMD_UNIT) == 0)
 			{
 				$options[self::PARAMETER_ESCAPE] = self::ESCAPE_NONE;
+				$options[self::PARAMETER_DUPLICATED_KEY] = self::DUPLICATED_KEY_ARRAY;
+				$options[self::PARAMETER_LIST] = self::LIST_DUPLICATE_KEY;
 			}
 
 			$p = $mediaType->getParameters();
@@ -574,6 +680,22 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 		return $options;
 	}
 
+	protected function getParserDuplicatedKeyMode($options)
+	{
+		$mode = Container::keyValue($options,
+			self::PARAMETER_DUPLICATED_KEY);
+		switch (\strtolower($mode))
+		{
+			case self::DUPLICATED_KEY_ARRAY:
+				return IniParser::DUPLICATED_KEY_ARRAY;
+			case self::DUPLICATED_KEY_CONCATENATE:
+				return IniParser::DUPLICATED_KEY_CONCATENATE;
+			case self::DUPLICATED_KEY_OVERRIDE:
+				return IniParser::DUPLICATED_KEY_OVERRIDE;
+		}
+		return null;
+	}
+
 	protected function getParserFlags($options,
 		MediaTypeInterface $mediaType = null)
 	{
@@ -588,17 +710,11 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 		if (\strcasecmp($s, self::MEDIA_TYPE_SYSTEMD_UNIT) == 0 ||
 			\strcasecmp($s, self::MEDIA_TYPE_DBUS_SERVICE) == 0)
 		{
-			$flags |= IniParser::VALUE_UNQUOTED_BACKSLASH_CONTINUE;
+			$flags |= IniParser::UNQUOTED_VALUE_BACKSLASH_CONTINUE;
 		}
 
 		return $flags;
 	}
 
 	private static $supportedMediaTypeParameters;
-
-	/**
-	 *
-	 * @var IniParser
-	 */
-	private $parser;
 }
