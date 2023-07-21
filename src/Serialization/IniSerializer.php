@@ -188,29 +188,30 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	public function __construct()
 	{}
 
-	public function unserializeData($data,
+	public function unserializeData($text,
 		MediaTypeInterface $mediaType = null)
 	{
 		$options = $this->getOptions($mediaType);
-
 		$parser = new IniParser();
 		if (($mode = $this->getParserDuplicatedKeyMode($options)) !==
 			null)
 			$parser->duplicatedKeyMode = $mode;
 		$parser->valueConcatenationGlue = Container::keyValue($options,
 			self::PARAMETER_LIST_SEPARATOR);
-
 		$parserFlags = $this->getParserFlags($options, $mediaType);
-		$data = $parser($data, $parserFlags);
+		$parser->initialize($parserFlags);
+		$data = $parser($text, $parserFlags);
 
-		return $this->postprocessDeserialization($data);
+		if (!Container::isTraversable($data))
+			throw new SerializationException('Failed to parse INI text');
+
+		return $this->postprocessDeserialization($data, $options);
 	}
 
 	public function unserializeFromStream($stream,
 		MediaTypeInterface $mediaType = null)
 	{
 		$options = $this->getOptions($mediaType);
-
 		$parser = new IniParser();
 		if (($mode = $this->getParserDuplicatedKeyMode($options)) !==
 			null)
@@ -233,6 +234,9 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 			}
 		}
 		$data = $parser->finalize();
+		if (!Container::isTraversable($data))
+			throw new SerializationException(
+				'Failed to parse INI stream');
 
 		return $this->postprocessDeserialization($data, $options);
 	}

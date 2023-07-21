@@ -119,7 +119,8 @@ class IniParser
 			$line = '';
 			$eol = '';
 			$this->extractLine($line, $eol, $text);
-			$this->parseLine($text, $eol);
+
+			$this->parseLine($line, $eol);
 			$text = \substr($text, \strlen($line) + \strlen($eol));
 		}
 		return $this->finalize();
@@ -352,7 +353,9 @@ class IniParser
 			"\n"
 		] as $needle)
 		{
-			$p = \strpos($needle, $text);
+			$p = \strpos($text, $needle);
+			if ($p === false)
+				continue;
 			if (\is_integer($p) && $p < $length)
 			{
 				$length = $p;
