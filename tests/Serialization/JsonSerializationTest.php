@@ -7,6 +7,9 @@
  */
 namespace NoreSources\Data\TestCase\Serialization;
 
+use NoreSources\Container\CaseInsensitiveKeyMapTrait;
+use NoreSources\Container\Container;
+use NoreSources\Container\ContainerPropertyInterface;
 use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\DataUnserializerInterface;
 use NoreSources\Data\Serialization\FileSerializerInterface;
@@ -19,6 +22,46 @@ use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
+
+class SomeJsonSerializableClass implements \JsonSerializable
+{
+
+	public function jsonSerialize()
+	{
+		return "My name is JSON";
+	}
+}
+
+class OpaqueClass
+{
+
+	public $secret = 'I am not a secret';
+}
+
+class SomeTraversableClass implements ContainerPropertyInterface
+{
+
+	public $property = 'value';
+
+	private $privateProperty = 'shht';
+
+	public function getContainerProperties()
+	{
+		return Container::properties($this, true) |
+			Container::TRAVERSABLE;
+	}
+}
+
+class SomeTraversableContainer implements \ArrayAccess, \Countable,
+	\IteratorAggregate
+{
+	use CaseInsensitiveKeyMapTrait;
+
+	public function __construct($array = array())
+	{
+		$this->initializeCaseInsensitiveKeyMapTrait($array);
+	}
+}
 
 final class JsonSerializationTest extends SerializerTestCaseBase
 {
@@ -134,6 +177,7 @@ final class JsonSerializationTest extends SerializerTestCaseBase
 
 		$this->assertSupportsMediaTypeParameter(
 			[
+
 				'style parameter' => [
 					true,
 					'style'
@@ -153,5 +197,56 @@ final class JsonSerializationTest extends SerializerTestCaseBase
 					'ugly'
 				]
 			], $serializer, $mediaType);
+	}
+
+	public function testTransform()
+	{
+		if (!$this->canTestSerializer())
+			return;
+		$serializer = $this->createSerializer();
+		$mediaType = MediaTypeFactory::getInstance()->createFromString(
+			self::MEDIA_TYPE);
+		$mediaType->getParameters()->offsetSet('style', 'pretty');
+
+		$data = new \ArrayObject(
+			[
+				'description' => 'ArrayObject is traversable.',
+				'inner-object' => new SomeTraversableContainer(
+					[
+						'hidden' => 'value',
+						'reason' => 'If depth parameter is set to 0, this will be hidden'
+					]),
+				'traversable-object' => new SomeTraversableClass(),
+				'opaque-object' => new OpaqueClass(),
+				'date-time' => new \DateTime('@0')
+			]);
+		$method = __METHOD__;
+		$extension = 'json';
+		foreach ([
+
+			'zero' => 0,
+			'one' => 1,
+			'two' => 2,
+			'infinite' => -1
+		] as $suffix => $depth)
+		{
+			$label = 'Serialize object to JSON ';
+			if ($depth == 0)
+				$label .= 'without pre-transformation';
+			elseif ($depth < 1)
+				$label .= 'with full pre-transformation';
+			else
+				$label .= 'with pre-transformation limited to ' . $depth .
+					' recursion';
+
+			$mediaType->getParameters()->offsetSet('transform-depth',
+				$depth);
+			$data['media-type'] = $mediaType->jsonSerialize();
+			$filename = $this->getDerivedFilename($method, $suffix,
+				$extension, $label);
+			$serializer->serializeToFile($filename, $data, $mediaType);
+			$this->assertDerivedFileEqualsReferenceFile($method, $suffix,
+				$extension, $label);
+		}
 	}
 }

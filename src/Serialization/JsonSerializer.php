@@ -30,7 +30,15 @@ use NoreSources\MediaType\MediaTypeMatcher;
  *
  * Supported media type parameters
  * <ul>
- * <li>style=pretty</li>
+ * <li>style=pretty: (serializer only) Use pretty print output</li>
+ * <li>transform-depth=int: (serializer only) Define if data should be pre-transformed before
+ * invoking json_encode function.
+ * <ul>
+ * <li>0: Do not transform data</li>
+ * <li>&gt; 0: Transform data recursively. The given value define the recursion depth limit.</li>
+ * <li>&lt 0: Transform data recursively without recursion limit.</li>
+ * </ul>
+ * </li>
  * <ul>
  *
  * Require json PHP extension.
@@ -59,6 +67,23 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
 
+	/**
+	 * Default JSON media type.
+	 * This serializer suppots any media type with a +json syntax suffix
+	 *
+	 * @var string
+	 */
+	const MEDIA_TYPE = 'application/json';
+
+	/**
+	 * Controls the maximum depth of serialization preprocess
+	 *
+	 * Default is unlimited
+	 *
+	 * @var string
+	 */
+	const PARAMETER_DEPTH = 'transform-depth';
+
 	const PARAMETER_STYLE = 'style';
 
 	const STYLE_PRETTY = 'pretty';
@@ -77,15 +102,24 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 		MediaTypeInterface $mediaType = null)
 	{
 		$flags = 0;
-		if ($mediaType &&
-			($style = Container::keyValue($mediaType->getParameters(),
-				'style')) &&
-			(\strcasecmp($style, self::STYLE_PRETTY) == 0))
+		$maxDepth = -1;
+		if ($mediaType)
 		{
-			$flags |= JSON_PRETTY_PRINT;
+			$p = $mediaType->getParameters();
+			if ($p->has(self::PARAMETER_DEPTH) &&
+				\is_numeric($m = $p->get(self::PARAMETER_DEPTH)))
+				$maxDepth = \intval($m);
+
+			if (($style = Container::keyValue($p, 'style')) &&
+				(\strcasecmp($style, self::STYLE_PRETTY) == 0))
+				$flags |= JSON_PRETTY_PRINT;
 		}
 
+		if ($maxDepth != 0)
+			$data = $this->preprocessDataForEncoding($data, $maxDepth);
+
 		$serialized = @\json_encode($data, $flags);
+
 		$error = \json_last_error();
 		if ($error != JSON_ERROR_NONE)
 			throw new SerializationException(json_last_error_msg());
@@ -146,11 +180,32 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 		return $this->isMediaTypeSerializable($mediaType);
 	}
 
+	protected function preprocessDataForEncoding($data, $depth)
+	{
+		if ($data instanceof \DateTimeInterface)
+			return $data->format(\DateTime::ISO8601);
+
+		if ($depth == 0)
+			return $data;
+
+		if ($data instanceof \JsonSerializable)
+			$data = $data->jsonSerialize();
+
+		if (!Container::isTraversable($data))
+			return $data;
+
+		return Container::mapValues($data,
+			function ($v) use ($depth) {
+				return $this->preprocessDataForEncoding($v,
+					\max(-1, $depth - 1));
+			});
+	}
+
 	protected function buildMediaTypeList()
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(
-				'application/json')
+				self::MEDIA_TYPE)
 		];
 	}
 
@@ -159,8 +214,9 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 		if (!isset(self::$supportedMediaTypeParameters))
 		{
 			self::$supportedMediaTypeParameters = [
-				'application/json' => [
-					self::PARAMETER_STYLE => self::STYLE_PRETTY
+				self::MEDIA_TYPE => [
+					self::PARAMETER_STYLE => self::STYLE_PRETTY,
+					self::PARAMETER_DEPTH => true
 				]
 			];
 		}
