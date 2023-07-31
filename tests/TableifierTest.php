@@ -1,7 +1,7 @@
 <?php
 use NoreSources\Container\Container;
 use NoreSources\Container\ContainerPropertyInterface;
-use NoreSources\Data\Tableizer;
+use NoreSources\Data\Tableifier;
 use NoreSources\Type\TypeDescription;
 
 class TraversableEntity implements ContainerPropertyInterface
@@ -26,12 +26,12 @@ class TraversableEntity implements ContainerPropertyInterface
  *
  * @package Data
  */
-class TableizerTest extends \PHPUnit\Framework\TestCase
+class TableifierTest extends \PHPUnit\Framework\TestCase
 {
 
 	public function testLiteral()
 	{
-		$tableizer = new Tableizer();
+		$tableizer = new Tableifier();
 
 		foreach ([
 			'string',
@@ -269,7 +269,7 @@ class TableizerTest extends \PHPUnit\Framework\TestCase
 
 	protected function tableize($input, $expected, $label)
 	{
-		$tableizer = new Tableizer();
+		$tableizer = new Tableifier();
 		$actual = $tableizer($input);
 		$this->assertEquals($actual, $expected, $label);
 	}

@@ -9,7 +9,7 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
-use NoreSources\Data\Tableizer;
+use NoreSources\Data\Tableifier;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -373,7 +373,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 
 	protected function prepareSerialization($data)
 	{
-		$tableizer = new Tableizer();
+		$tableizer = new Tableifier();
 		$tableizer->setCellNormalizer(
 			[
 				$this,
