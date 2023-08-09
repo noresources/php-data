@@ -9,6 +9,7 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
+use NoreSources\Data\Serialization\Traits\PrimitifyTrait;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -27,6 +28,11 @@ use NoreSources\Type\TypeConversion;
 
 /**
  * Plain text serialization
+ *
+ * <ul>
+ * <li>preprocess-depth=non-zero (serializer only): Primitify input data to ensure better
+ * serialization</li>
+ * </ul>
  */
 class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	SerializableMediaTypeInterface, DataUnserializerInterface,
@@ -48,6 +54,10 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerBaseTrait;
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
+
+	use PrimitifyTrait;
+
+	const MEDIA_TYPE = 'text/plain';
 
 	public function __construct()
 	{}
@@ -90,6 +100,8 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
+		$data = $this->primitifyData($data, $mediaType);
+
 		if (!Container::isTraversable($data))
 			return \fwrite($stream, TypeConversion::toString($data));
 
@@ -134,8 +146,22 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(
-				'text/plain')
+				self::MEDIA_TYPE)
 		];
+	}
+
+	protected function getSupportedMediaTypeParameterValues()
+	{
+		if (!isset(self::$supportedMediaTypeParameters))
+		{
+			self::$supportedMediaTypeParameters = [
+				self::MEDIA_TYPE => [
+					SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true
+				]
+			];
+		}
+
+		return self::$supportedMediaTypeParameters;
 	}
 
 	protected function buildFileExtensionList()
@@ -145,5 +171,7 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 			'plain'
 		];
 	}
+
+	private static $supportedMediaTypeParameters;
 }
 

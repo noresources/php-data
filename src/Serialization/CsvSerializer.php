@@ -10,6 +10,7 @@ namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
 use NoreSources\Data\Tableifier;
+use NoreSources\Data\Serialization\Traits\PrimitifyTrait;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -39,6 +40,8 @@ use NoreSources\Type\TypeConversionException;
  * <li><code>flatten</code> (unserializer only)</li>
  * <li><code>heading=none|auto|row|column</code> (unserialize only) Transforms table to object or
  * collection of objects</li>
+ * <li>preprocess-depth=non-zero (serializer only): Primitify input data to ensure better
+ * serialization</li>
  * </ul>
  */
 class CsvSerializer implements UnserializableMediaTypeInterface,
@@ -61,6 +64,8 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerBaseTrait;
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
+
+	use PrimitifyTrait;
 
 	const MEDIA_TYPE = 'text/csv';
 
@@ -371,8 +376,10 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 		return $lines;
 	}
 
-	protected function prepareSerialization($data)
+	protected function prepareSerialization($data,
+		MediaTypeInterface $mediaType = null)
 	{
+		$data = $this->primitifyData($data, $mediaType);
 		$tableizer = new Tableifier();
 		$tableizer->setCellNormalizer(
 			[
@@ -460,6 +467,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 		{
 			self::$supportedMediaTypeParameters = [
 				self::MEDIA_TYPE => [
+					SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true,
 					self::PARAMETER_ENCLOSURE => true,
 					self::PARAMETER_EOL => true,
 					self::PARAMETER_ESCAPE => true,

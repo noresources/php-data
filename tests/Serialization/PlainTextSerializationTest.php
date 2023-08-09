@@ -18,12 +18,15 @@ use NoreSources\Data\Serialization\StreamUnserializerInterface;
 use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\Type\TypeDescription;
 
 final class PlainTextSerializationTest extends SerializerTestCaseBase
 {
 
 	const CLASS_NAME = PlainTextSerializer::class;
+
+	const MEDIA_TYPE = PlainTextSerializer::MEDIA_TYPE;
 
 	public function testImplements()
 	{
@@ -188,5 +191,22 @@ final class PlainTextSerializationTest extends SerializerTestCaseBase
 			$actual = $s->serializeData($i);
 			$this->assertEquals($expected, $actual, $label);
 		}
+	}
+
+	public function testParameters()
+	{
+		$serializer = $this->createSerializer();
+
+		$mediaType = MediaTypeFactory::createFromString(
+			self::MEDIA_TYPE);
+
+		$this->assertSupportsMediaTypeParameter(
+			[
+
+				'pre-transform parameter' => [
+					true,
+					'preprocess-depth'
+				]
+			], $serializer, $mediaType);
 	}
 }

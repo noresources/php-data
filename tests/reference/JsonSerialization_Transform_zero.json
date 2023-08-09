@@ -12,5 +12,5 @@
         "timezone_type": 1,
         "timezone": "+00:00"
     },
-    "media-type": "application\/json; style=pretty; transform-depth=0"
+    "media-type": "application\/json; style=pretty; preprocess-depth=0"
 }

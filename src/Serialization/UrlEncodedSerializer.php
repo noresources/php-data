@@ -9,6 +9,7 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
+use NoreSources\Data\Serialization\Traits\PrimitifyTrait;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -23,6 +24,12 @@ use NoreSources\Type\TypeConversion;
 
 /**
  * URL-encoded query parameter (de)serialization
+ *
+ * Supported parameters
+ * <ul>
+ * <li>preprocess-depth=non-zero (serializer only): Primitify input data to ensure better
+ * serialization</li>
+ * </ul>
  *
  * @see https://datatracker.ietf.org/doc/html/rfc3986
  */
@@ -41,6 +48,10 @@ class UrlEncodedSerializer implements UnserializableMediaTypeInterface,
 
 	use StreamUnserializerBaseTrait;
 	use StreamUnserializerDataUnserializerTrait;
+
+	use PrimitifyTrait;
+
+	const MEDIA_TYPE = 'application/x-www-form-urlencoded';
 
 	public function unserializeFromStream($stream,
 		MediaTypeInterface $mediaType = null)
@@ -73,6 +84,8 @@ class UrlEncodedSerializer implements UnserializableMediaTypeInterface,
 	public function serializeData($data,
 		MediaTypeInterface $mediaType = null)
 	{
+		$data = $this->primitifyData($data, $mediaType);
+
 		if (Container::isArray($data))
 			return \http_build_query(Container::createArray($data));
 
@@ -83,7 +96,23 @@ class UrlEncodedSerializer implements UnserializableMediaTypeInterface,
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(
-				'application/x-www-form-urlencoded')
+				self::MEDIA_TYPE)
 		];
 	}
+
+	protected function getSupportedMediaTypeParameterValues()
+	{
+		if (!isset(self::$supportedMediaTypeParameters))
+		{
+			self::$supportedMediaTypeParameters = [
+				self::MEDIA_TYPE => [
+					SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true
+				]
+			];
+		}
+
+		return self::$supportedMediaTypeParameters;
+	}
+
+	private static $supportedMediaTypeParameters;
 }

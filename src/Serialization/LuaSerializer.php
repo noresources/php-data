@@ -9,6 +9,7 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
+use NoreSources\Data\Serialization\Traits\PrimitifyTrait;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -23,6 +24,12 @@ use NoreSources\Type\TypeConversion;
 
 /**
  * Lua primitive serialization
+ *
+ * Supported parameters
+ * <ul>
+ * <li>preprocess-depth=non-zero (serializer only): Primitify input data to ensure better
+ * serialization</li>
+ * </ul>
  *
  * @see https://datatracker.ietf.org/doc/html/rfc3986
  */
@@ -39,6 +46,8 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;
 	use StreamSerializerFileSerializerTrait;
+
+	use PrimitifyTrait;
 
 	/**
 	 * Unregisted media type
@@ -119,6 +128,8 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 				$mediaType->getParameters(), self::PARAMETER_MODE,
 				$options[self::PARAMETER_MODE]);
 		}
+
+		$data = $this->primitifyData($data, $mediaType);
 
 		if (\strcasecmp($options[self::PARAMETER_MODE],
 			self::MODE_MODULE) == 0)
@@ -201,6 +212,7 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 		if (!isset(self::$supportedMediaTypeParameters))
 		{
 			self::$supportedMediaTypeParameters = [
+				SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true,
 				self::MEDIA_TYPE => [
 					self::PARAMETER_MODE => [
 						self::MODE_RAW,

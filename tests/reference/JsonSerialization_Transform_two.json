@@ -11,5 +11,5 @@
         "secret": "I am not a secret"
     },
     "date-time": "1970-01-01T00:00:00+0000",
-    "media-type": "application\/json; style=pretty; transform-depth=2"
+    "media-type": "application\/json; style=pretty; preprocess-depth=2"
 }

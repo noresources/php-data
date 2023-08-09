@@ -9,6 +9,8 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
+use NoreSources\Data\Primitifier;
+use NoreSources\Data\Serialization\Traits\PrimitifyTrait;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -31,7 +33,7 @@ use NoreSources\MediaType\MediaTypeMatcher;
  * Supported media type parameters
  * <ul>
  * <li>style=pretty: (serializer only) Use pretty print output</li>
- * <li>transform-depth=int: (serializer only) Define if data should be pre-transformed before
+ * <li>preprocess-depth=int: (serializer only) Define if data should be pre-transformed before
  * invoking json_encode function.
  * <ul>
  * <li>0: Do not transform data</li>
@@ -67,6 +69,8 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
 
+	use PrimitifyTrait;
+
 	/**
 	 * Default JSON media type.
 	 * This serializer suppots any media type with a +json syntax suffix
@@ -82,7 +86,7 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	 *
 	 * @var string
 	 */
-	const PARAMETER_DEPTH = 'transform-depth';
+	const PARAMETER_DEPTH = SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT;
 
 	const PARAMETER_STYLE = SerializationParameter::PRESENTATION_STYLE;
 
@@ -96,27 +100,29 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 		return \extension_loaded('json');
 	}
 
+	public static function preprocessEntry($entry)
+	{
+		if ($entry instanceof \JsonSerializable)
+			return $entry->jsonSerialize();
+		return $entry;
+	}
+
 	///////////////////////////////////////////////////
 	// StreamSerializer
 	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
 		$flags = 0;
-		$maxDepth = -1;
 		if ($mediaType)
 		{
 			$p = $mediaType->getParameters();
-			if ($p->has(self::PARAMETER_DEPTH) &&
-				\is_numeric($m = $p->get(self::PARAMETER_DEPTH)))
-				$maxDepth = \intval($m);
 
 			if (($style = Container::keyValue($p, 'style')) &&
 				(\strcasecmp($style, self::STYLE_PRETTY) == 0))
 				$flags |= JSON_PRETTY_PRINT;
 		}
 
-		if ($maxDepth != 0)
-			$data = $this->preprocessDataForEncoding($data, $maxDepth);
+		$data = $this->primitifyData($data, $mediaType);
 
 		$serialized = @\json_encode($data, $flags);
 
@@ -232,5 +238,16 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 			'json',
 			'jsn'
 		];
+	}
+
+	protected function createPrimitifier()
+	{
+		$primitifier = new Primitifier();
+		$primitifier->setEntryPreprocessor(
+			[
+				self::class,
+				'preprocessEntry'
+			]);
+		return $primitifier;
 	}
 }

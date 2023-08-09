@@ -12,6 +12,7 @@ use NoreSources\Container\Container;
 use NoreSources\Data\Analyzer;
 use NoreSources\Data\CollectionClass;
 use NoreSources\Data\Serialization\Shellscript\ShellscriptWriter;
+use NoreSources\Data\Serialization\Traits\PrimitifyTrait;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -36,6 +37,8 @@ use NoreSources\Type\TypeDescription;
  * <li>collection=* : Indicates the given content is a collection of object</li>
  * <li>key-property=string : When serializing collection of object. Indicates which element property
  * to use as variable name prefix</li>
+ * <li>preprocess-depth=non-zero (serializer only): Primitify input data to ensure better
+ * serialization</li>
  * </ul>
  */
 class ShellscriptSerializer implements SerializableMediaTypeInterface,
@@ -51,6 +54,8 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;
 	use StreamSerializerFileSerializerTrait;
+
+	use PrimitifyTrait;
 
 	const MEDIA_TYPE = 'text/x-shellscript';
 
@@ -197,6 +202,9 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 
 		$writer = $this->getInterpreterWriter($interpreter,
 			$interpreterVersion);
+
+		$data = $this->primitifyData($data, $mediaType);
+
 		if ($variableNameTransformer)
 			$writer->setVariableNameTransformer(
 				$variableNameTransformer);
@@ -267,6 +275,7 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 		if (!isset(self::$supportedMediaTypeParameters))
 		{
 			self::$supportedMediaTypeParameters = [
+				SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true,
 				self::MEDIA_TYPE => [
 					self::PARAMETER_VARIABLE_CASE => [
 						self::VARIABLE_CASE_CAMEL,

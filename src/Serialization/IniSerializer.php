@@ -13,6 +13,7 @@ use NoreSources\Data\Analyzer;
 use NoreSources\Data\CollectionClass;
 use NoreSources\Data\Parser\IniParser;
 use NoreSources\Data\Parser\ParserException;
+use NoreSources\Data\Serialization\Traits\PrimitifyTrait;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -47,6 +48,8 @@ use NoreSources\MediaType\MediaTypeInterface;
  * <li>single-value-key : Use this string as key when serializing POD value</li>
  * <li>duplicated-key=override|concatenate|list</li>
  * <li>list=duplicate-key|concatenate</li>
+ * <li>preprocess-depth=non-zero (serializer only): Primitify input data to ensure better
+ * serialization</li>
  * </ul>
  */
 class IniSerializer implements UnserializableMediaTypeInterface,
@@ -69,6 +72,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	use StreamSerializerBaseTrait;
 	use StreamSerializerDataSerializerTrait;
 	use StreamSerializerFileSerializerTrait;
+	use PrimitifyTrait;
 
 	const MEDIA_TYPE = 'text/x-ini';
 
@@ -253,6 +257,8 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 				$key => $data
 			];
 		}
+
+		$data = $this->primitifyData($data, $mediaType);
 		$this->serializeSectionToStream($stream, [], $data, $options);
 	}
 
@@ -501,6 +507,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 			] as $mediaType)
 			{
 				self::$supportedMediaTypeParameters[$mediaType] = [
+					SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true,
 					self::PARAMETER_INDENT => true,
 					self::PARAMETER_DUPLICATED_KEY => [
 						self::DUPLICATED_KEY_ARRAY,

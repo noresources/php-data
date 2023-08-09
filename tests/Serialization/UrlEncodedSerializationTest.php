@@ -23,6 +23,8 @@ final class UrlEncodedSerializationTest extends SerializerTestCaseBase
 
 	const CLASS_NAME = UrlEncodedSerializer::class;
 
+	const MEDIA_TYPE = UrlEncodedSerializer::MEDIA_TYPE;
+
 	public function testImplements()
 	{
 		if (!$this->canTestSerializer())
@@ -89,5 +91,22 @@ final class UrlEncodedSerializationTest extends SerializerTestCaseBase
 			$this->assertEquals($value, $unserialized,
 				'Serialization/Deserialization cycle');
 		}
+	}
+
+	public function testParameters()
+	{
+		$serializer = $this->createSerializer();
+
+		$mediaType = MediaTypeFactory::createFromString(
+			self::MEDIA_TYPE);
+
+		$this->assertSupportsMediaTypeParameter(
+			[
+
+				'pre-transform parameter' => [
+					true,
+					'preprocess-depth'
+				]
+			], $serializer, $mediaType);
 	}
 }

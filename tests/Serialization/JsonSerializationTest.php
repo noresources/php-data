@@ -240,7 +240,7 @@ final class JsonSerializationTest extends SerializerTestCaseBase
 				$label .= 'with pre-transformation limited to ' . $depth .
 					' recursion';
 
-			$mediaType->getParameters()->offsetSet('transform-depth',
+			$mediaType->getParameters()->offsetSet('preprocess-depth',
 				$depth);
 			$data['media-type'] = $mediaType->jsonSerialize();
 			$filename = $this->getDerivedFilename($method, $suffix,
