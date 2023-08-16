@@ -84,9 +84,9 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	 */
 	const PARAMETER_DEPTH = 'transform-depth';
 
-	const PARAMETER_STYLE = 'style';
+	const PARAMETER_STYLE = SerializationParameter::PRESENTATION_STYLE;
 
-	const STYLE_PRETTY = 'pretty';
+	const STYLE_PRETTY = SerializationParameter::PRESENTATION_STYLE_PRETTY;
 
 	public function __construct()
 	{}

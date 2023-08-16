@@ -103,7 +103,7 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 	 *
 	 * @var string
 	 */
-	const PARAMETER_COLLECTION = 'collection';
+	const PARAMETER_COLLECTION = SerializationParameter::COLLECTION;
 
 	/**
 	 * Collection element key property to use as variable name prefix

@@ -1,0 +1,16 @@
+{
+    "description": "ArrayObject is traversable.",
+    "inner-object": {},
+    "traversable-object": {
+        "property": "value"
+    },
+    "opaque-object": {
+        "secret": "I am not a secret"
+    },
+    "date-time": {
+        "date": "1970-01-01 00:00:00.000000",
+        "timezone_type": 1,
+        "timezone": "+00:00"
+    },
+    "media-type": "application\/json; style=pretty; transform-depth=0"
+}
