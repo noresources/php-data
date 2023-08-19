@@ -26,6 +26,7 @@ use NoreSources\MediaType\MediaTypeFactory;
 class SomeJsonSerializableClass implements \JsonSerializable
 {
 
+	#[\ReturnTypeWillChange]
 	public function jsonSerialize()
 	{
 		return "My name is JSON";
