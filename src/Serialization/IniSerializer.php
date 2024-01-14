@@ -408,13 +408,13 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 		$options)
 	{
 		$escape = Container::keyValue($options, self::PARAMETER_ESCAPE);
-		if (\strcasecmp($escape, self::ESCAPE_NONE) == 0)
+		if (\is_string($escape) && \strcasecmp($escape, self::ESCAPE_NONE) == 0)
 		{
 			\fwrite($stream, $value);
 			return;
 		}
 
-		if (\strcasecmp($escape, self::ESCAPE_QUOTE_SWAP) == 0)
+		if (\is_string($escape) && \strcasecmp($escape, self::ESCAPE_QUOTE_SWAP) == 0)
 			$escape = null;
 
 		$characters = [

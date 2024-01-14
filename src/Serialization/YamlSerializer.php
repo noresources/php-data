@@ -129,7 +129,7 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 		MediaTypeInterface $mediaType)
 	{
 		$syntax = $mediaType->getStructuredSyntax(false);
-		if (\strcasecmp($syntax, 'yaml') === 0)
+		if (\is_string($syntax) && \strcasecmp($syntax, 'yaml') === 0)
 			return true;
 		$list = $this->getSerializableMediaRanges();
 		$matcher = new MediaTypeMatcher($mediaType);

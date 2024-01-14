@@ -173,7 +173,7 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 		MediaTypeInterface $mediaType)
 	{
 		$syntax = $mediaType->getStructuredSyntax();
-		if (\strcasecmp($syntax, 'json') === 0)
+		if (\is_string($syntax) && \strcasecmp($syntax, 'json') === 0)
 			return true;
 		$list = $this->getSerializableMediaRanges();
 		$matcher = new MediaTypeMatcher($mediaType);
