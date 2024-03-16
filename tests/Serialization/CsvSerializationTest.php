@@ -78,6 +78,10 @@ final class CsvSerializationTest extends SerializerTestCaseBase
 				],
 				[
 					true,
+					'collection'
+				],
+				[
+					true,
 					'heading',
 					'none'
 				],
@@ -300,5 +304,64 @@ final class CsvSerializationTest extends SerializerTestCaseBase
 					$label . ' serialization/deserialization');
 			}
 		}
+	}
+
+	public function testHeading()
+	{
+		$serializer = new CsvSerializer();
+		$method = __METHOD__;
+		$extension = 'csv';
+		$mediaType = MediaTypeFactory::getInstance()->createFromString(
+			'text/csv');
+		$columnReferenceFile = $this->getReferenceFileDirectory() .
+			'/csv/heading-column.csv';
+		$rowReferenceFile = $this->getReferenceFileDirectory() .
+			'/csv/heading-row.csv';
+
+		foreach ([
+			'none',
+			'auto',
+			'column',
+			'row',
+			'both'
+		] as $heading)
+		{
+			$mediaType->getParameters()['heading'] = $heading;
+			$data = $serializer->unserializeFromFile(
+				$columnReferenceFile, $mediaType);
+			$this->assertIsArray($data,
+				'Deserialized data (heading: ' . $heading . ')');
+			if (\extension_loaded('json'))
+			{
+				$json = \json_encode($data, JSON_PRETTY_PRINT);
+				$this->assertDerivedFile($json, $method, $heading,
+					$extension);
+			}
+		}
+
+		$mediaType->getParameters()['collection'] = '';
+
+		$mediaType->getParameters()['heading'] = 'column';
+		$columnCollection = $serializer->unserializeFromFile(
+			$columnReferenceFile, $mediaType);
+		if (\extension_loaded('json'))
+		{
+			$json = \json_encode($columnCollection, JSON_PRETTY_PRINT);
+			$this->assertDerivedFile($json, $method, 'collection-column',
+				$extension);
+		}
+
+		$mediaType->getParameters()['heading'] = 'row';
+		$rowCollection = $serializer->unserializeFromFile(
+			$rowReferenceFile, $mediaType);
+		if (\extension_loaded('json'))
+		{
+			$json = \json_encode($rowCollection, JSON_PRETTY_PRINT);
+			$this->assertDerivedFile($json, $method, 'collection-row',
+				$extension);
+		}
+
+		$this->assertEquals($columnCollection, $rowCollection,
+			'Transposed collection');
 	}
 }

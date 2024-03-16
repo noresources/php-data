@@ -267,7 +267,8 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	{
 		$options = [
 			self::PARAMETER_FLATTEN => false,
-			self::PARAMETER_HEADING => self::HEADING_NONE
+			self::PARAMETER_HEADING => self::HEADING_NONE,
+			SerializationParameter::COLLECTION => false
 		];
 		if (!$mediaType)
 			return $options;
@@ -298,6 +299,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 				$lines[] = $last;
 			}
 		}
+
 		$lineCount = Container::count($lines);
 		if ($lineCount == 0)
 			return $lines;
@@ -310,10 +312,11 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 		{
 			$pivot = $lines[0][0];
 			if (empty($pivot))
-			{
 				$heading = self::HEADING_BOTH;
-			}
 		}
+
+		$isCollection = Container::keyValue($options,
+			SerializationParameter::COLLECTION, false);
 
 		if ($heading == self::HEADING_COLUMN)
 		{
@@ -326,6 +329,20 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 			}
 			$fieldCount = Container::count($fields);
 
+			if ($isCollection)
+			{
+				$collection = [];
+				for ($a = 1; $a < $lineCount; $a++)
+				{
+					$object = [];
+					for ($b = 0; $b < $fieldCount; $b++)
+						$object[$fields[$b]] = $lines[$a][$b];
+					$collection[] = $object;
+				}
+
+				return $collection;
+			}
+
 			for ($a = 1; $a < $lineCount; $a++)
 			{
 				for ($b = 0; $b < $fieldCount; $b++)
@@ -333,7 +350,8 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 			}
 			return $object;
 		}
-		elseif ($heading == self::HEADING_ROW)
+
+		if ($heading == self::HEADING_ROW)
 		{
 			$fields = [];
 			$object = [];
@@ -346,6 +364,20 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 
 			$fieldCount = Container::count($fields);
 
+			if ($isCollection)
+			{
+				$collection = [];
+				for ($b = 1; $b < $columnCount; $b++)
+				{
+					$object = [];
+					for ($a = 0; $a < $lineCount; $a++)
+						$object[$fields[$a]] = $lines[$a][$b];
+					$collection[] = $object;
+				}
+
+				return $collection;
+			}
+
 			for ($a = 0; $a < $lineCount; $a++)
 			{
 				for ($b = 1; $b < $columnCount; $b++)
@@ -353,7 +385,8 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 			}
 			return $object;
 		}
-		elseif ($heading == self::HEADING_BOTH)
+
+		if ($heading == self::HEADING_BOTH)
 		{
 			$collection = [];
 			$fieldCount = Container::count($lines[0]);
@@ -374,6 +407,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 			if (Container::count($f) == 1)
 				return Container::firstValue($f);
 		}
+
 		return $lines;
 	}
 
@@ -469,6 +503,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 			self::$supportedMediaTypeParameters = [
 				self::MEDIA_TYPE => [
 					SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true,
+					SerializationParameter::COLLECTION => true,
 					self::PARAMETER_ENCLOSURE => true,
 					self::PARAMETER_EOL => true,
 					self::PARAMETER_ESCAPE => true,
