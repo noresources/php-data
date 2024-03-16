@@ -343,11 +343,12 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 				$fields[] = $field;
 				$object[$field] = [];
 			}
+
 			$fieldCount = Container::count($fields);
 
 			for ($a = 0; $a < $lineCount; $a++)
 			{
-				for ($b = 1; $b < $fieldCount; $b++)
+				for ($b = 1; $b < $columnCount; $b++)
 					$object[$fields[$a]][] = $lines[$a][$b];
 			}
 			return $object;
