@@ -675,5 +675,5 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 *
 	 * @var array
 	 */
-	private $es;
+	private $serializers;
 }
