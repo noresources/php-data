@@ -21,6 +21,8 @@ class BasicClass
 
 	protected $uninitializedProtectedValue;
 
+	public static $staticPublicValue = 123;
+
 	private $privateValue = 'private';
 
 	public function getReadOnlyProperty()
