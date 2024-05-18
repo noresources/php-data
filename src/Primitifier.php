@@ -68,6 +68,9 @@ class Primitifier
 			 * @var ReflectionProperty $property
 			 */
 
+			if ($property->isStatic())
+				continue;
+
 			try
 			{
 				$property = $this->reflectionService->getReflectionProperty(
