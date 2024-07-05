@@ -55,6 +55,8 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 			$this->registerSerializer(new IniSerializer());
 			$this->registerSerializer(new CsvSerializer());
 			$this->registerSerializer(new LuaSerializer());
+			if (LuaUnserializer::prerequisites())
+				$this->registerSerializer(new LuaUnserializer());
 			if (YamlSerializer::prerequisites())
 				$this->registerSerializer(new YamlSerializer());
 			if (JsonSerializer::prerequisites())

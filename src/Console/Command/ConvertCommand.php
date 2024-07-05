@@ -55,6 +55,22 @@ class ConvertCommand extends Command
 		OutputInterface $output)
 	{
 		$errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+		try
+		{
+			return $this->doExecute($input, $output);
+		}
+		catch (\Exception $e)
+		{
+			if ($output->isVerbose())
+				throw $e;
+			$errorOutput->writeln($e->getMessage());
+			return Command::FAILURE;
+		}
+	}
+
+	public function doExecute(InputInterface $input,
+		OutputInterface $output)
+	{
 		$mediaTypeFactory = MediaTypeFactory::getInstance();
 		$manager = Utility::createSerializationManager($input, $output);
 
@@ -299,8 +315,7 @@ class ConvertCommand extends Command
 					$inputMediaType);
 			}
 			else
-				return $end(1,
-					'<error>Unable to deserialize input</error>');
+				throw new \Exception('Unable to deserialize input');
 
 			if ($outputStream &&
 				$manager->isSerializableToStream($outputStream, $data,
@@ -317,7 +332,9 @@ class ConvertCommand extends Command
 		}
 		catch (\Exception $e)
 		{
-			return $end(1, $e->getMessage());
+			if ($output->isVerbose())
+				throw $e;
+			return $end(1, '<error>' . $e->getMessage() . '</error>');
 		}
 
 		return $end(0, '');
