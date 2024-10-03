@@ -7,6 +7,7 @@
  */
 namespace NoreSources\Data\TestCase\Serialization;
 
+use NoreSources\Container\Container;
 use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\DataUnserializerInterface;
 use NoreSources\Data\Serialization\FileSerializerInterface;
@@ -164,9 +165,11 @@ final class PlainTextSerializationTest extends SerializerTestCaseBase
 					'First' => 'a',
 					'Second' => 'b'
 				],
+				'serializable' => false,
 				'expected' => "a\nb"
 			],
 			'deep map' => [
+				'serializable' => false,
 				'input' => [
 					'First' => 'a',
 					'Second' => [
@@ -186,9 +189,15 @@ final class PlainTextSerializationTest extends SerializerTestCaseBase
 
 		foreach ($tests as $label => $test)
 		{
-			$i = $test['input'];
+			$input = $test['input'];
+			$serializable = Container::keyValue($test, 'serializable',
+				true);
+			$this->assertEquals($serializable,
+				$s->isContentSerializable($input),
+				$label . ' is ' . ($serializable ? '' : 'not ') .
+				'serializable');
 			$expected = $test['expected'];
-			$actual = $s->serializeData($i);
+			$actual = $s->serializeData($input);
 			$this->assertEquals($expected, $actual, $label);
 		}
 	}

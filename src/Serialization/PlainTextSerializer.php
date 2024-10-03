@@ -9,7 +9,8 @@
 namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
-use NoreSources\Data\Serialization\Traits\PrimitifyTrait;
+use NoreSources\Data\Analyzer;
+use NoreSources\Data\CollectionClass;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerBaseTrait;
 use NoreSources\Data\Serialization\Traits\StreamSerializerDataSerializerTrait;
@@ -28,18 +29,13 @@ use NoreSources\Type\TypeConversion;
 
 /**
  * Plain text serialization
- *
- * <ul>
- * <li>preprocess-depth=non-zero (serializer only): Primitify input data to ensure better
- * serialization</li>
- * </ul>
  */
 class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	SerializableMediaTypeInterface, DataUnserializerInterface,
 	DataSerializerInterface, FileUnserializerInterface,
 	FileSerializerInterface, StreamSerializerInterface,
 	StreamUnserializerInterface, FileExtensionListInterface,
-	MediaTypeListInterface
+	MediaTypeListInterface, SerializableContentInterface
 {
 	use MediaTypeListTrait;
 	use FileExtensionListTrait;
@@ -54,8 +50,6 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	use StreamUnserializerBaseTrait;
 	use StreamUnserializerDataUnserializerTrait;
 	use StreamUnserializerFileUnserializerTrait;
-
-	use PrimitifyTrait;
 
 	const MEDIA_TYPE = 'text/plain';
 
@@ -100,8 +94,6 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	public function serializeToStream($stream, $data,
 		MediaTypeInterface $mediaType = null)
 	{
-		$data = $this->primitifyData($data, $mediaType);
-
 		if (!Container::isTraversable($data))
 			return \fwrite($stream, TypeConversion::toString($data));
 
@@ -117,6 +109,20 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	public function getFileStreamFooter()
 	{
 		return "\n";
+	}
+
+	public function isContentSerializable($data)
+	{
+		$analyzer = Analyzer::getInstance();
+		$depth = $analyzer->getMaxDepth($data);
+
+		if ($depth == 0)
+			return true;
+		if ($depth > 1)
+			return false;
+		$collectionClass = $analyzer->getCollectionClass($data, 1);
+
+		return ($collectionClass & CollectionClass::ASSOCIATIVE) == 0;
 	}
 
 	protected function recursiveSerializeData(&$stream, &$count,
