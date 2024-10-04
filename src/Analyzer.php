@@ -131,6 +131,39 @@ class Analyzer
 	}
 
 	/**
+	 * Get min and max depth.
+	 *
+	 * @param mixed $data
+	 *        	Input data
+	 * @return integer[] [min, max] depth
+	 */
+	public function getDepthRange($data)
+	{
+		if (!Container::isTraversable($data))
+			return [
+				0,
+				0
+			];
+		$min = -1;
+		$max = 1;
+
+		foreach ($data as $value)
+		{
+			list ($dmin, $dmax) = $this->getDepthRange($value);
+			if ($min < 0)
+				$min = $dmin;
+			else
+				$min = \min($min, $dmin);
+			$max = \max($max, $dmax + 1);
+		}
+
+		return [
+			\max(0, $min) + 1,
+			$max
+		];
+	}
+
+	/**
 	 *
 	 * @param mixed $data
 	 *        	Input data

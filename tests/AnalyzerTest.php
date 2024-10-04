@@ -110,6 +110,7 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 
 			$actualMinDepth = $analyzer->getDataMinDepth($data);
 			$actualMaxDepth = $analyzer->getMaxDepth($data);
+			$actualRange = $analyzer->getDepthRange($data);
 			$actualTypes = $analyzer->getDataDimensionTypes($data);
 
 			if ($minDepth >= 0)
@@ -118,6 +119,8 @@ final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 			if ($maxDepth >= 0)
 				$this->assertEquals($maxDepth, $actualMaxDepth,
 					$label . ' max depth');
+			$this->assertEquals($actualMaxDepth, $actualRange[1],
+				'Max depth rom getDepthRange');
 			$this->assertEquals($types, $actualTypes,
 				$label . ' level types');
 
