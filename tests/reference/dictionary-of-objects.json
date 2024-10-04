@@ -1,0 +1,17 @@
+{
+	"Girl": {
+		"id": "alice", 
+		"first-name": "Alice", 
+		"last-name": "Example"
+	}, 
+	"Boy": {
+		"id": "bob", 
+		"first-name": "Bob", 
+		"last-name": "Example"
+	}, 
+	"Versatile": {
+		"id": "meta", 
+		"first-name": "Foo", 
+		"last-name": "Bar"
+	}
+}

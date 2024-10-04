@@ -51,6 +51,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 		if ($registerBuiltins)
 		{
 			$this->registerSerializer(new PlainTextSerializer());
+			$this->registerSerializer(new TextArtTableSerializer());
 			$this->registerSerializer(new UrlEncodedSerializer());
 			$this->registerSerializer(new ShellscriptSerializer());
 			$this->registerSerializer(new IniSerializer());
