@@ -15,6 +15,13 @@ class SerializationParameter
 {
 
 	/**
+	 * Character set
+	 *
+	 * @var string
+	 */
+	const CHARSET = 'charset';
+
+	/**
 	 * Indicates input data is a collection of object/array
 	 *
 	 * Parameter value is ignored
@@ -64,4 +71,46 @@ class SerializationParameter
 	 * @var string
 	 */
 	const PRESENTATION_STYLE_CONDENSED = 'condensed';
+
+	/**
+	 * Table heading mode parameter name
+	 *
+	 * @var string
+	 */
+	const TABLE_HEADING = 'heading';
+
+	/**
+	 * Auto detect table heading mode
+	 *
+	 * @var string
+	 */
+	const TABLE_HEADING_AUTO = 'auto';
+
+	/**
+	 * Table do not have any column or row heading
+	 *
+	 * @var string
+	 */
+	const TABLE_HEADING_NONE = 'none';
+
+	/**
+	 * First column is a row heading
+	 *
+	 * @var string
+	 */
+	const TABLE_HEADING_ROW = 'row';
+
+	/**
+	 * First row is the column heading
+	 *
+	 * @var string
+	 */
+	const TABLE_HEADING_COLUMN = 'column';
+
+	/**
+	 * First row and columns represents the column and row heading.
+	 *
+	 * @var string
+	 */
+	const TABLE_HEADING_BOTH = 'both';
 }

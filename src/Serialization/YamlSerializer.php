@@ -62,7 +62,7 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 	 *
 	 * @var string
 	 */
-	const PARAMETER_ENCODING = 'charset';
+	const PARAMETER_ENCODING = SerializationParameter::CHARSET;
 
 	/**
 	 * Default encoding

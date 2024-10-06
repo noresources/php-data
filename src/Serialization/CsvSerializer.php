@@ -102,42 +102,47 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	 *
 	 * @var string
 	 */
-	const PARAMETER_HEADING = 'heading';
+	const PARAMETER_HEADING = SerializationParameter::TABLE_HEADING;
 
 	/**
 	 * No headings
 	 *
 	 * @var string
+	 * @deprecated Use SerializationParameter::TABLE_HEADING_*
 	 */
-	const HEADING_NONE = 'none';
+	const HEADING_NONE = SerializationParameter::TABLE_HEADING_NONE;
 
 	/**
 	 * Auto-detect headings
 	 *
 	 * @var string
+	 * @deprecated Use SerializationParameter::TABLE_HEADING_*
 	 */
-	const HEADING_AUTO = 'auto';
+	const HEADING_AUTO = SerializationParameter::TABLE_HEADING_AUTO;
 
 	/**
 	 * Row heading only
 	 *
 	 * @var string
+	 * @deprecated Use SerializationParameter::TABLE_HEADING_*
 	 */
-	const HEADING_ROW = 'row';
+	const HEADING_ROW = SerializationParameter::TABLE_HEADING_ROW;
 
 	/**
 	 * Column heading only
 	 *
 	 * @var string
+	 * @deprecated Use SerializationParameter::TABLE_HEADING_*
 	 */
-	const HEADING_COLUMN = 'column';
+	const HEADING_COLUMN = SerializationParameter::TABLE_HEADING_COLUMN;
 
 	/**
 	 * Both row and column headings
 	 *
 	 * @var string
+	 * @deprecated Use SerializationParameter::TABLE_HEADING_*
 	 */
-	const HEADING_BOTH = 'both';
+	const HEADING_BOTH = SerializationParameter::TABLE_HEADING_BOTH;
 
 	/**
 	 * Reduce table dimension when top level array contains only one element.
@@ -267,7 +272,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	{
 		$options = [
 			self::PARAMETER_FLATTEN => false,
-			self::PARAMETER_HEADING => self::HEADING_NONE,
+			self::PARAMETER_HEADING => SerializationParameter::TABLE_HEADING_NONE,
 			SerializationParameter::COLLECTION => false
 		];
 		if (!$mediaType)
@@ -308,17 +313,17 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 			return $lines;
 
 		$heading = Container::keyValue($options, self::PARAMETER_HEADING);
-		if ($heading == self::HEADING_AUTO)
+		if ($heading == SerializationParameter::TABLE_HEADING_AUTO)
 		{
 			$pivot = $lines[0][0];
 			if (empty($pivot))
-				$heading = self::HEADING_BOTH;
+				$heading = SerializationParameter::TABLE_HEADING_BOTH;
 		}
 
 		$isCollection = Container::keyValue($options,
 			SerializationParameter::COLLECTION, false);
 
-		if ($heading == self::HEADING_COLUMN)
+		if ($heading == SerializationParameter::TABLE_HEADING_COLUMN)
 		{
 			$fields = [];
 			$object = [];
@@ -351,7 +356,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 			return $object;
 		}
 
-		if ($heading == self::HEADING_ROW)
+		if ($heading == SerializationParameter::TABLE_HEADING_ROW)
 		{
 			$fields = [];
 			$object = [];
@@ -386,7 +391,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 			return $object;
 		}
 
-		if ($heading == self::HEADING_BOTH)
+		if ($heading == SerializationParameter::TABLE_HEADING_BOTH)
 		{
 			$collection = [];
 			$fieldCount = Container::count($lines[0]);
@@ -510,11 +515,11 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 					self::PARAMETER_FLATTEN => true,
 					self::PARAMETER_SEPARATOR => true,
 					self::PARAMETER_HEADING => [
-						self::HEADING_NONE,
-						self::HEADING_AUTO,
-						self::HEADING_ROW,
-						self::HEADING_COLUMN,
-						self::HEADING_BOTH
+						SerializationParameter::TABLE_HEADING_NONE,
+						SerializationParameter::TABLE_HEADING_AUTO,
+						SerializationParameter::TABLE_HEADING_ROW,
+						SerializationParameter::TABLE_HEADING_COLUMN,
+						SerializationParameter::TABLE_HEADING_BOTH
 					]
 				]
 			];
