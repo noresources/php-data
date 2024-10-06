@@ -132,7 +132,6 @@ class ConvertCommand extends Command
 
 		if (!$inputMediaType && \is_file($inputURI))
 		{
-
 			try
 			{
 				$inputMediaType = $mediaTypeFactory->createFromMedia(
@@ -158,7 +157,12 @@ class ConvertCommand extends Command
 				}
 			}
 			catch (MediaTypeException $e)
-			{}
+			{
+				$extension = @\pathinfo($inputURI);
+				if ($extension)
+					$inputMediaType = Container::firstValue(
+						$manager->getMediaTypesForExtension($extension));
+			}
 		}
 
 		if (!$inputMediaType && $inputStream)
@@ -217,7 +221,12 @@ class ConvertCommand extends Command
 					$outputURI, $flags);
 			}
 			catch (MediaTypeException $e)
-			{}
+			{
+				$extension = @\pathinfo($outputURI, PATHINFO_EXTENSION);
+				if ($extension)
+					$outputMediaType = Container::firstValue(
+						$manager->getMediaTypesForExtension($extension));
+			}
 		}
 
 		if (!$outputMediaType)

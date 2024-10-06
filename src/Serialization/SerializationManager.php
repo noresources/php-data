@@ -13,6 +13,7 @@ use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\UnserializableMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeComparisonHelper;
+use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeException;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
@@ -570,6 +571,10 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 		return false;
 	}
 
+	/**
+	 *
+	 * @return string[] List of all file extensions supported by manager (de)serializers
+	 */
 	public function getFileExtensions()
 	{
 		$extensions = [];
@@ -646,6 +651,31 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 			'No deserializer found for ' . $name . ' file');
 		throw new SerializationException(
 			'No serializer found for ' . $name . ' file');
+	}
+
+	/**
+	 * Get the list of media types supported by (de)serializers that corresponds to the given file
+	 * extension.
+	 *
+	 * @param string $extension
+	 *        	File extension
+	 * @return MediaTypeListInterface[]
+	 */
+	public function getMediaTypesForExtension($extension)
+	{
+		$list = [];
+		foreach ($this->serializers as $serializer)
+		{
+			if (!($serializer instanceof FileExtensionListInterface))
+				continue;
+			if (!($serializer instanceof MediaTypeListInterface))
+				continue;
+			if (!\in_array($extension, $serializer->getFileExtensions()))
+				continue;
+			$list = \array_merge($list, $serializer->getMediaTypes());
+		}
+
+		return \array_unique($list);
 	}
 
 	private function normalizeMediaTypeFromMedia($media,
