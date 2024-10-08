@@ -45,6 +45,13 @@ class SerializationParameter
 	const PRE_TRANSFORM_RECURSION_LIMIT = 'preprocess-depth';
 
 	/**
+	 * Maximum row length
+	 *
+	 * @var string
+	 */
+	const PRESENTATION_MAX_ROW_LENGTH = 'max-row-length';
+
+	/**
 	 * Serializationpresentation style parameter name.
 	 *
 	 * Parameter expect a string value representing a pre-defined sytle name.

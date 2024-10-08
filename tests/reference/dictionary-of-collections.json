@@ -1,0 +1,24 @@
+{
+	"fr": {
+		"numbers": {
+			"one": "un", 
+			"two": "deux"
+		}, 
+		"colors": {
+			"red": "rouge", 
+			"green": "vert", 
+			"blue": "bleu"
+		}
+	}, 
+	"en": {
+		"numbers": {
+			"one": "one", 
+			"two": "two"
+		}, 
+		"colors": {
+			"red": "red", 
+			"blue": "blue", 
+			"green": "green"
+		}
+	}
+}

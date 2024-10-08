@@ -34,4 +34,6 @@ class Utf8TableRenderer extends TableRenderer
 	const BORDER_BOTTOM_INTER = '┴';
 
 	const BORDER_BOTTOM_RIGHT = '┘';
+
+	const ELLIPSIS = '…';
 }

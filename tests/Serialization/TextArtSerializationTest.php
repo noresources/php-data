@@ -11,6 +11,7 @@ namespace NoreSources\Data\TestCase\Serialization;
 use NoreSources\Data\Serialization\DataSerializerInterface;
 use NoreSources\Data\Serialization\FileSerializerInterface;
 use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
+use NoreSources\Data\Serialization\SerializationParameter;
 use NoreSources\Data\Serialization\StreamSerializerInterface;
 use NoreSources\Data\Serialization\TextArtTableSerializer;
 use NoreSources\Data\Utility\FileExtensionListInterface;
@@ -87,6 +88,70 @@ class TextArtSerializationTest extends SerializerTestCaseBase
 			], $serializer);
 	}
 
+	public function testMaxRowLength()
+	{
+		$method = __METHOD__;
+		$suffix = null;
+		$extension = 'art';
+		$serializer = $this->createSerializer();
+		$mediaType = MediaTypeFactory::getInstance()->createFromString(
+			'text/vnd.ascii-art');
+		$data = [
+			'short' => [
+				'Short',
+				'Text'
+			],
+			'Long Long Long text' => [
+				'Somewhere over the nainbow, la la la',
+				'Lorem ipsum ipso facto et manu militari. Alea jacta est. Aleva cesqui distus '
+			]
+		];
+
+		foreach ([
+			null,
+			30,
+			15
+		] as $max)
+		{
+			foreach ([
+				'us-ascii',
+				'utf-8'
+			] as $charset)
+			{
+				$suffix = $charset;
+				$mediaType->getParameters()->offsetSet('charset',
+					$charset);
+				if ($max)
+				{
+					$suffix .= '-max-' . $max;
+					$mediaType->getParameters()->offsetSet(
+						SerializationParameter::PRESENTATION_MAX_ROW_LENGTH,
+						$max);
+				}
+				else
+				{
+					$suffix .= '-unlimited';
+					if ($mediaType->getParameters()->offsetExists(
+						SerializationParameter::PRESENTATION_MAX_ROW_LENGTH))
+						$mediaType->getParameters()->offsetUnset(
+							SerializationParameter::PRESENTATION_MAX_ROW_LENGTH);
+				}
+
+				$actual = $serializer->serializeData($data, $mediaType);
+				$parts = \explode("\n", $actual);
+				$length = \mb_strlen($parts[0]);
+
+				$this->assertDerivedFile($actual, $method, $suffix,
+					$extension,
+					'Serializing with max-row-length=' . \strval($max));
+
+				if ($max)
+					$this->assertLessThanOrEqual($max, $length,
+						$suffix . ' line length');
+			}
+		}
+	}
+
 	public function testSerialize()
 	{
 		/**
@@ -120,7 +185,7 @@ class TextArtSerializationTest extends SerializerTestCaseBase
 				continue;
 
 			foreach ([
-				'ascii',
+				'us-ascii',
 				'utf-8'
 			] as $charset)
 			{

@@ -10,6 +10,7 @@ namespace NoreSources\Data\Serialization;
 
 use NoreSources\Container\Container;
 use NoreSources\Data\Analyzer;
+use NoreSources\Data\CollectionClass;
 use NoreSources\Data\Serialization\Text\AsciiTableRenderer;
 use NoreSources\Data\Serialization\Text\TableRenderer;
 use NoreSources\Data\Serialization\Text\Utf8TableRenderer;
@@ -22,6 +23,7 @@ use NoreSources\Data\Utility\Traits\FileExtensionListTrait;
 use NoreSources\Data\Utility\Traits\MediaTypeListTrait;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
+use NoreSources\Type\TypeConversion;
 
 class TextArtTableSerializer implements SerializableMediaTypeInterface,
 	SerializableContentInterface, DataSerializerInterface,
@@ -43,10 +45,22 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 		if (!Container::isTraversable($data))
 			return false;
 		$analyzer = Analyzer::getInstance();
-		$min = $analyzer->getMinDepth($data);
-		$max = $analyzer->getMaxDepth($data);
+		list ($min, $max) = $analyzer->getDepthRange($data);
+		if ($min < 2)
+			return false;
+		if ($max == 2)
+			return true;
+		if ($max > 3)
+			return false;
 
-		return ($min == $max) && ($min == 2);
+		list ($_, $__, $class) = $analyzer->getDimensionCollectionClasss(
+			$data,
+			[
+				'mode' => Analyzer::DIMENSION_CLASS_MODE_COMBINE,
+				'depth' => 3
+			]);
+		return (($class & CollectionClass::LIST) != 0) &&
+			(($class & CollectionClass::MAP) == 0);
 	}
 
 	public function isSerializableTo($data,
@@ -82,6 +96,7 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 	public function createTableRenderer(
 		MediaTypeInterface $mediaType = null)
 	{
+		$renderer = null;
 		if ($mediaType &&
 			$mediaType->getParameters()->has(
 				SerializationParameter::CHARSET))
@@ -89,10 +104,27 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 			$charset = $mediaType->getParameters()->get(
 				SerializationParameter::CHARSET);
 
-			if (\strcasecmp($charset, 'ascii') == 0)
-				return new AsciiTableRenderer();
+			if (\strcasecmp($charset, 'us-ascii') == 0)
+				$renderer = new AsciiTableRenderer();
 		}
-		return new Utf8TableRenderer();
+		if (!$renderer)
+			$renderer = new Utf8TableRenderer();
+		$renderer->setStringifier([
+			self::class,
+			'defaultStringifier'
+		]);
+		if ($mediaType)
+		{
+			if ($mediaType->getParameters()->has(
+				SerializationParameter::PRESENTATION_MAX_ROW_LENGTH))
+			{
+				$renderer->setMaxRowLength(
+					$mediaType->getParameters()
+						->get(
+						SerializationParameter::PRESENTATION_MAX_ROW_LENGTH));
+			}
+		}
+		return $renderer;
 	}
 
 	public function getHeadingMode($data,
@@ -122,6 +154,13 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 		return TableRenderer::guessHeadingMode($data);
 	}
 
+	public static function defaultStringifier($value)
+	{
+		if (Container::isTraversable($value))
+			return Container::implodeValues($value, "\n");
+		return TypeConversion::toString($value);
+	}
+
 	protected function buildFileExtensionList()
 	{
 		return [
@@ -144,7 +183,11 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 		{
 			self::$supportedMediaTypeParameters = [
 				self::MEDIA_TYPE => [
-					SerializationParameter::CHARSET => true,
+					SerializationParameter::PRESENTATION_MAX_ROW_LENGTH => true,
+					SerializationParameter::CHARSET => [
+						'us-ascii',
+						'utf-8'
+					],
 					SerializationParameter::TABLE_HEADING => [
 						SerializationParameter::TABLE_HEADING_AUTO,
 						SerializationParameter::TABLE_HEADING_NONE,
