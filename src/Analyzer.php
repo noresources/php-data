@@ -215,17 +215,76 @@ class Analyzer
 		return $this->getMinDepth($data);
 	}
 
-	public function getDimensionCollectionClasss($data, $depth = null)
+	const DIMENSION_CLASS_MODE_INTERSECT = 0;
+
+	const DIMENSION_CLASS_MODE_COMBINE = 4;
+
+	/**
+	 * Get per-depth collection class
+	 *
+	 * @param \Traversable|array $data
+	 *        	Input data
+	 * @param array $options
+	 *        	Options
+	 *        	<ul>
+	 *        	<li>depth (int): Limit container traversal to $depth level</li>
+	 *        	<li>mode: Indicates how to merge results from different subtree.</li>
+	 *        	</ul>
+	 * @return array Per depth collection classes
+	 */
+	public function getDimensionCollectionClasss($data,
+		$options = array())
 	{
+		if (\is_integer($options))
+			$options = [
+				'depth' => $options,
+				'mode' => self::DIMENSION_CLASS_MODE_INTERSECT
+			];
+		$mode = Container::keyValue($options, 'mode',
+			self::DIMENSION_CLASS_MODE_INTERSECT);
+		$depth = Container::keyValue($options, 'depth', null);
 		if ($depth === null)
-			$depth = $this->getMinDepth($data);
-		$collectionClass = [];
-		$level = $data;
-		while ($depth--)
 		{
-			$collectionClass[] = $this->getCollectionClass($level);
-			$level = Container::firstValue($level);
+			if ($mode == self::DIMENSION_CLASS_MODE_COMBINE)
+				$depth = $this->getMaxDepth($data);
+			else
+				$depth = $this->getMinDepth($data);
 		}
+
+		if ($depth == 0)
+			return [];
+		if ($depth == 1)
+			return [
+				$this->getCollectionClass($data)
+			];
+
+		$collectionClass = [];
+		$visited = Container::keyValue($options, 'visited', []);
+		$visited[] = $data;
+		foreach ($data as $element)
+		{
+			$c = [];
+			if (Container::isTraversable($element))
+			{
+				if (\in_array($element, $visited))
+					continue;
+
+				$c = $this->getDimensionCollectionClasss($element,
+					[
+						'depth' => $depth - 1,
+						'mode' => $mode,
+						'visited' => $visited
+					]);
+			}
+			if ($mode == self::DIMENSION_CLASS_MODE_COMBINE)
+				$collectionClass = self::array_bitwise_or(
+					$collectionClass, $c);
+			else
+				$collectionClass = self::array_bitwise_and(
+					$collectionClass, $c);
+		}
+		\array_unshift($collectionClass,
+			$this->getCollectionClass($data));
 
 		return $collectionClass;
 	}
@@ -254,5 +313,35 @@ class Analyzer
 		}
 
 		return $types;
+	}
+
+	private static function array_bitwise_or($a, $b)
+	{
+		$c = \max(\count($a), \count($b));
+		for ($i = 0; $i < $c; $i++)
+		{
+
+			$a[$i] = Container::keyValue($a, $i, 0) |
+				Container::keyValue($b, $i, 0);
+		}
+		return $a;
+	}
+
+	private static function array_bitwise_and($a, $b)
+	{
+		$c = \max(\count($a), \count($b));
+		for ($i = 0; $i < $c; $i++)
+		{
+			if (Container::keyExists($a, $i))
+			{
+				if (Container::keyExists($b, $i))
+				{
+					$a[$i] &= $b[$i];
+				}
+			}
+			elseif (Container::keyExists($b, $i))
+				$a[$i] = $b[$i];
+		}
+		return $a;
 	}
 }

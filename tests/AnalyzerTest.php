@@ -11,9 +11,58 @@ namespace NoreSources\Data\Test;
 use NoreSources\Container\Container;
 use NoreSources\Data\Analyzer;
 use NoreSources\Data\CollectionClass;
+use NoreSources\Type\TypeDescription;
 
 final class AnalyzerTest extends \PHPUnit\Framework\TestCase
 {
+
+	public function testCollectionClass()
+	{
+		$analyzer = Analyzer::getInstance();
+		$inconsistent = [
+			'string',
+			[
+				'int' => 42,
+				'float' => 3.14
+			]
+		];
+
+		list ($min, $max) = $analyzer->getDepthRange($inconsistent);
+		$this->assertEquals(1, $min, 'Min depth');
+		$this->assertEquals(2, $max, 'Max depth');
+
+		$actual = $analyzer->getDimensionCollectionClasss($inconsistent);
+		$this->assertEquals('array', TypeDescription::getName($actual),
+			'getDimensionClass() result type');
+		$this->assertCount(1, $actual,
+			'Number of levels (default options)');
+		$this->assertEquals(CollectionClass::LIST, $actual[0],
+			'First level class (default options)');
+
+		$actual = $analyzer->getDimensionCollectionClasss($inconsistent,
+			0);
+		$this->assertCount(0, $actual,
+			'Number of classes with depth = 0');
+
+		$actual = $analyzer->getDimensionCollectionClasss($inconsistent,
+			[
+				'depth' => 1,
+				'mode' => Analyzer::DIMENSION_CLASS_MODE_COMBINE
+			]);
+		$this->assertCount(1, $actual,
+			'Deep search with depth = min depth returns the same result as default.');
+		$actual = $analyzer->getDimensionCollectionClasss($inconsistent,
+			[
+				'depth' => 2,
+				'mode' => Analyzer::DIMENSION_CLASS_MODE_COMBINE
+			]);
+		$this->assertCount(2, $actual,
+			'Number of levels with deep depth = 2');
+		$this->assertEquals(CollectionClass::LIST, $actual[0],
+			'First level class');
+		$this->assertEquals(CollectionClass::DICTIONARY, $actual[1],
+			'Second level class');
+	}
 
 	public function testAnalyzer()
 	{
