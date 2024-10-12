@@ -36,6 +36,28 @@ class BasicClass
 class PrimitifierTest extends \PHPUnit\Framework\TestCase
 {
 
+	public function testTraversable()
+	{
+		$method = __METHOD__;
+		$suffix = null;
+		$extension = 'json';
+		$primitifier = new Primitifier();
+
+		$expected = [
+			'foo' => 'bar',
+			'Pif' => 'Paf'
+		];
+		$subject = new \ArrayObject($expected);
+		$actual = $primitifier($subject);
+		$this->assertEquals($expected, $actual, 'ArrayObject to array');
+
+		$expected = [];
+		$subject = new \ArrayObject($expected);
+		$actual = $primitifier($subject);
+		$this->assertEquals($expected, $actual,
+			'Empty arrayObject to array');
+	}
+
 	public function testGetObjectProperties()
 	{
 		$method = __METHOD__;

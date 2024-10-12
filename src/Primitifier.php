@@ -202,7 +202,7 @@ class Primitifier
 		{
 			if (Container::isTraversable($subject))
 			{
-				$z = [];
+				$a = [];
 				foreach ($subject as $key => $value)
 				{
 					$a[$key] = $this->transform($value,
