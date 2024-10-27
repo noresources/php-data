@@ -12,8 +12,8 @@ use NoreSources\Container\Stack;
 use NoreSources\Data\Serialization\Traits\SerializableMediaTypeTrait;
 use NoreSources\Data\Serialization\Traits\UnserializableMediaTypeTrait;
 use NoreSources\Data\Utility\FileExtensionListInterface;
-use NoreSources\Data\Utility\MediaTypeComparisonHelper;
 use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\MediaType\Comparison;
 use NoreSources\MediaType\MediaTypeException;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
@@ -57,8 +57,6 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 			$this->registerSerializer(new IniSerializer());
 			$this->registerSerializer(new CsvSerializer());
 			$this->registerSerializer(new LuaSerializer());
-			if (LuaUnserializer::prerequisites())
-				$this->registerSerializer(new LuaUnserializer());
 			if (YamlSerializer::prerequisites())
 				$this->registerSerializer(new YamlSerializer());
 			if (JsonSerializer::prerequisites())
@@ -150,8 +148,8 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 
 		return Container::uniqueValues($list,
 			[
-				MediaTypeComparisonHelper::class,
-				'lexicalCOmpare'
+				Comparison::class,
+				'lexical'
 			]);
 	}
 

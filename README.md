@@ -1,4 +1,5 @@
-# ns-php-data
+noresources/data
+=======================================
 
 Data serialization library
 
@@ -14,7 +15,7 @@ Serialize/Unserialize content to/from
 ## Installation
 
 ```bash
-composer require noresources/ns-php-data ~1.0
+composer require noresources/data
 ```
 
 ## Basic usage

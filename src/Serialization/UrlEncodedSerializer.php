@@ -87,7 +87,7 @@ class UrlEncodedSerializer implements UnserializableMediaTypeInterface,
 		$data = $this->primitifyData($data, $mediaType);
 
 		if (Container::isArray($data))
-			return \http_build_query(Container::createArray($data));
+			return \http_build_query(TypeConversion::toArray($data));
 
 		return \urlencode(TypeConversion::toString($data));
 	}

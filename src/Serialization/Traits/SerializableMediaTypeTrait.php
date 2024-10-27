@@ -10,8 +10,8 @@ namespace NoreSources\Data\Serialization\Traits;
 
 use NoreSources\Container\Container;
 use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
-use NoreSources\Data\Utility\MediaTypeComparisonHelper;
 use NoreSources\Data\Utility\MediaTypeListInterface;
+use NoreSources\MediaType\Comparison;
 use NoreSources\MediaType\MediaRange;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInspector;
@@ -162,8 +162,8 @@ trait SerializableMediaTypeTrait
 		} // each available
 		return Container::uniqueValues($list,
 			[
-				MediaTypeComparisonHelper::class,
-				'lexicalCOmpare'
+				Comparison::class,
+				'lexical'
 			]);
 	}
 }
