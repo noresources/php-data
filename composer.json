@@ -28,8 +28,9 @@
 		"symfony/polyfill-mbstring": "^1.31"
 	}, 
 	"suggest": {
-		"ext-json": "*", 
-		"ext-yaml": "*"
+		"ext-json": "To use JSON (de)serializer", 
+		"ext-yaml": "To use YAML (de)serializer", 
+		"ext-dom": "To use Apple XML property list (de)serializer"
 	}, 
 	"scripts": {
 		"test": "@php  ./vendor/bin/phpunit --color=never --bootstrap vendor/autoload.php tests"

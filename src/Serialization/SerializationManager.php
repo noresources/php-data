@@ -63,6 +63,9 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 				$this->registerSerializer(new YamlSerializer());
 			if (JsonSerializer::prerequisites())
 				$this->registerSerializer(new JsonSerializer());
+			if (ApplePropertyListSerializer::prerequisites())
+				$this->registerSerializer(
+					new ApplePropertyListSerializer());
 		}
 	}
 
