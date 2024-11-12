@@ -20,6 +20,8 @@ use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\Type\TypeDescription;
 
+/**
+ */
 class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 {
 	use SerializerAssertionTrait;
