@@ -8,13 +8,7 @@
  */
 namespace NoreSources\Data\Serialization\Traits;
 
-use NoreSources\Data\Serialization\SerializableContentInterface;
-use NoreSources\Data\Serialization\SerializableMediaTypeInterface;
 use NoreSources\Data\Serialization\SerializationException;
-use NoreSources\Data\Utility\FileExtensionListInterface;
-use NoreSources\Data\Utility\MediaTypeListInterface;
-use NoreSources\MediaType\MediaTypeException;
-use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
 
 /**
@@ -23,66 +17,11 @@ use NoreSources\MediaType\MediaTypeInterface;
 trait StreamSerializerFileSerializerTrait
 {
 
+	use FileSerializerTrait;
+
 	public function getFileStreamFooter()
 	{
 		return null;
-	}
-
-	public function isSerializableToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
-	{
-		return $this->defaultIsSerializableToFile($filename, $data,
-			$mediaType);
-	}
-
-	private function defaultIsSerializableToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
-	{
-		if (($this instanceof SerializableContentInterface) &&
-			!$this->isContentSerializable($data))
-			return false;
-
-		$testExtension = $this instanceof FileExtensionListInterface &&
-			\is_string($filename);
-		if ($testExtension && !$mediaType)
-		{
-			return $this->matchFileExtension(
-				\pathinfo($filename, PATHINFO_EXTENSION));
-		}
-
-		if (($this instanceof MediaTypeListInterface) ||
-			($this instanceof SerializableMediaTypeInterface))
-		{
-			if (!$mediaType)
-			{
-				try
-				{
-					$mediaType = MediaTypeFactory::getInstance()->createFromMedia(
-						$filename, MediaTypeFactory::FROM_EXTENSION);
-				}
-				catch (MediaTypeException $e)
-				{}
-			}
-
-			if ($mediaType)
-			{
-				if (($this instanceof SerializableMediaTypeInterface) &&
-					!$this->isMediaTypeSerializable($mediaType))
-					return false;
-
-				if ($this instanceof MediaTypeListInterface)
-				{
-					// return $this->matchMediaType($mediaType);
-				}
-			}
-		}
-
-		if ($testExtension)
-			return $this->matchFileExtension(
-				\pathinfo($filename, PATHINFO_EXTENSION));
-
-		// No restrictions, assumes OK
-		return true;
 	}
 
 	public function serializeToFile($filename, $data,
