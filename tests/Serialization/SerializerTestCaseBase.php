@@ -32,6 +32,24 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 
 	const REFERENCE_BOOLEAN_DATA = true;
 
+	const REFERENCE_NULL_DATA = NULL;
+
+	public static $REFERENCE_LIST_DATA = [
+		self::REFERENCE_STRING_DATA,
+		self::REFERENCE_INTEGER_DATA,
+		self::REFERENCE_FLOAT_DATA,
+		self::REFERENCE_BOOLEAN_DATA,
+		self::REFERENCE_NULL_DATA
+	];
+
+	public static $REFERENCE_DICTIONARY_DATA = [
+		'string' => self::REFERENCE_STRING_DATA,
+		'integer' => self::REFERENCE_INTEGER_DATA,
+		'float' => self::REFERENCE_FLOAT_DATA,
+		'boolean' => self::REFERENCE_BOOLEAN_DATA,
+		'null' => self::REFERENCE_NULL_DATA
+	];
+
 	const CLASS_NAME = 'MustOverride';
 
 	public function setUp(): void
@@ -186,11 +204,17 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 		else
 		{
 			$cls = new \ReflectionClass($this);
-			$referenceConstantName = 'REFERENCE_' .
-				\strtoupper($typename) . '_DATA';
-			$hasExpected = $cls->hasConstant($referenceConstantName);
+			$referenceMemberName = 'REFERENCE_' . \strtoupper($typename) .
+				'_DATA';
+			$hasExpected = $cls->hasConstant($referenceMemberName);
 			if ($hasExpected)
-				$expected = $cls->getConstant($referenceConstantName);
+				$expected = $cls->getConstant($referenceMemberName);
+			elseif (($hasExpected = $cls->hasProperty(
+				$referenceMemberName)))
+			{
+				$property = $cls->getProperty($referenceMemberName);
+				$expected = $property->getValue($this);
+			}
 		}
 
 		if ($hasExpected)

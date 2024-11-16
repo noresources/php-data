@@ -119,7 +119,9 @@ final class JsonSerializationTest extends SerializerTestCaseBase
 			'string',
 			'integer',
 			'float',
-			'boolean'
+			'boolean',
+			'list',
+			'dictionary'
 		] as $typename)
 		{
 			foreach ($tests as $options)
