@@ -168,7 +168,7 @@ class TextArtSerializationTest extends SerializerTestCaseBase
 			'a' => false,
 			'collection' => 'column',
 			'dictionary-of-objects' => 'both',
-			'spare' => 'column',
+			'sparse' => 'column',
 			'table' => 'none',
 			'tree.data' => false
 		] as $filename => $heading)
