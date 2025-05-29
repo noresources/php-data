@@ -123,21 +123,21 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 	}
 
 	public function isSerializableToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->defaultIsSerializableToStream($stream, $data,
 			$mediaType) && $this->isSerializableTo($data, $mediaType);
 	}
 
 	public function isSerializableToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->defaultIsSerializableToFile($filename, $data,
 			$mediaType) && $this->isSerializableTo($data, $mediaType);
 	}
 
 	public function isSerializableTo($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if (!$this->defaultIsSerializableTo($data, $mediaType))
 			return false;
@@ -167,7 +167,7 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 	}
 
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$variableNameTransformer = null;
 		$interpreter = null;
@@ -302,7 +302,7 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 	}
 
 	private function dataIsCollection(
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if (!$mediaType)
 			return false;

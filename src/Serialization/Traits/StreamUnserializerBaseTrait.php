@@ -20,7 +20,7 @@ trait StreamUnserializerBaseTrait
 {
 
 	public function isUnserializableFromStream($stream,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if (!$mediaType)
 		{

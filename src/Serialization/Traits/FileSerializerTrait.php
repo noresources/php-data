@@ -21,14 +21,14 @@ trait FileSerializerTrait
 {
 
 	public function isSerializableToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->defaultIsSerializableToFile($filename, $data,
 			$mediaType);
 	}
 
 	private function defaultIsSerializableToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if (($this instanceof SerializableContentInterface) &&
 			!$this->isContentSerializable($data))
@@ -78,7 +78,7 @@ trait FileSerializerTrait
 	}
 
 	public function serializeToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$stream = @\fopen($filename, 'wb');
 		if ($stream === false)

@@ -91,7 +91,7 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 	public $indentation = ' ';
 
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$options = [
 			self::PARAMETER_INDENT => $this->indentation,

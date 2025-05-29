@@ -193,7 +193,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	{}
 
 	public function unserializeData($text,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$options = $this->getOptions($mediaType);
 		$parser = new IniParser();
@@ -213,7 +213,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	public function unserializeFromStream($stream,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$options = $this->getOptions($mediaType);
 		$parser = new IniParser();
@@ -246,7 +246,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$options = $this->getOptions($mediaType);
 		if (!Container::isTraversable($data))
@@ -649,7 +649,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 		return $value;
 	}
 
-	protected function getOptions(MediaTypeInterface $mediaType = null)
+	protected function getOptions(?MediaTypeInterface $mediaType = null)
 	{
 		$options = [
 			self::PARAMETER_INDENT => false,
@@ -708,7 +708,7 @@ class IniSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	protected function getParserFlags($options,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$flags = 0;
 		if ($options[self::PARAMETER_INDENT])

@@ -64,7 +64,7 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 	}
 
 	public function isSerializableTo($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->isContentSerializable($data) &&
 			$this->isMediaTypeSerializable($mediaType);
@@ -72,13 +72,13 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 	}
 
 	public function isSerializableToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->isSerializableTo($data, $mediaType);
 	}
 
 	public function serializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$renderer = $this->createTableRenderer($mediaType);
 		$renderer->heading = $this->getHeadingMode($data, $mediaType);
@@ -86,7 +86,7 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 	}
 
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$renderer = $this->createTableRenderer($mediaType);
 		$renderer->heading = $this->getHeadingMode($data, $mediaType);
@@ -94,7 +94,7 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 	}
 
 	public function createTableRenderer(
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$renderer = null;
 		if ($mediaType &&
@@ -128,7 +128,7 @@ class TextArtTableSerializer implements SerializableMediaTypeInterface,
 	}
 
 	public function getHeadingMode($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$mode = SerializationParameter::TABLE_HEADING_AUTO;
 		if ($mediaType &&

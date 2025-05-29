@@ -184,7 +184,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\StreamSerializerInterface::isSerializableToStream()
 	 */
 	public function isSerializableToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$stack = $this->stacks[StreamSerializerInterface::class];
 
@@ -203,7 +203,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\StreamSerializerInterface::serializeToStream()
 	 */
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if (!$mediaType)
 			$mediaType = $this->normalizeMediaTypeFromMedia($stack,
@@ -233,7 +233,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	}
 
 	public function getStreamSerializersFor($stream, $data = null,
-		MediaTypeInterface $mediaType = null,
+		?MediaTypeInterface $mediaType = null,
 		$normalizeMediaTypeFromMedia = true)
 	{
 		if ($normalizeMediaTypeFromMedia)
@@ -256,7 +256,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\StreamUnserializerInterface::isUnserializableFromStream()
 	 */
 	public function isUnserializableFromStream($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$stack = $this->stacks[StreamUnserializerInterface::class];
 		foreach ($stack as $e)
@@ -274,7 +274,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\StreamUnserializerInterface::unserializeFromStream()
 	 */
 	public function unserializeFromStream($stream,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$messages = [];
 		if (!$mediaType)
@@ -304,7 +304,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	}
 
 	public function getStreamUnserializersFor($stream,
-		MediaTypeInterface $mediaType = null,
+		?MediaTypeInterface $mediaType = null,
 		$normalizeMediaTypeFromMedia = true)
 	{
 		if ($normalizeMediaTypeFromMedia)
@@ -326,7 +326,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\DataUnserializerInterface::isUnserializableFrom()
 	 */
 	public function isUnserializableFrom($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$stack = $this->stacks[DataUnserializerInterface::class];
 		foreach ($stack as $e)
@@ -343,7 +343,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\DataUnserializerInterface::unserializeData()
 	 */
 	public function unserializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$list = $this->getDataUnserializersFor($data, $mediaType);
 		$messages = [];
@@ -371,7 +371,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @return DataUnserializerInterface[]
 	 */
 	public function getDataUnserializersFor($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$stack = $this->stacks[DataUnserializerInterface::class];
 		return Container::filterValues($stack,
@@ -388,7 +388,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\DataSerializerInterface::isSerializableTo()
 	 */
 	public function isSerializableTo($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if (!$mediaType && $data instanceof \Serializable)
 			return false;
@@ -407,7 +407,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\DataSerializerInterface::serializeData()
 	 */
 	public function serializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if (!$mediaType && $data instanceof \Serializable)
 			return $data->serialize();
@@ -438,7 +438,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @return DataSerializerInterface[]
 	 */
 	public function getDataSerializersFor($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->select(DataSerializerInterface::class,
 			'isSerializableTo', [
@@ -455,7 +455,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\FileUnserializerInterface::isUnserializableFromFile()
 	 */
 	public function isUnserializableFromFile($filename,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$mediaType = $this->normalizeMediaTypeFromMedia($filename,
 			$mediaType);
@@ -474,7 +474,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\FileUnserializerInterface::unserializeFromFile()
 	 */
 	public function unserializeFromFile($filename,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$mediaType = $this->normalizeMediaTypeFromMedia($filename,
 			$mediaType);
@@ -519,7 +519,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @return FileUnserializerTrait[]
 	 */
 	public function getFileUnserializersFor($filename,
-		MediaTypeInterface $mediaType = null,
+		?MediaTypeInterface $mediaType = null,
 		$normalizeMediaTypeFromMedia = true)
 	{
 		if ($normalizeMediaTypeFromMedia)
@@ -541,7 +541,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\FileSerializerInterface::isSerializableToFile()
 	 */
 	public function isSerializableToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$mediaType = $this->normalizeMediaTypeFromMedia($filename,
 			$mediaType, MediaTypeFactory::FROM_EXTENSION);
@@ -609,7 +609,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	 * @return FileSerializerInterface[]
 	 */
 	public function getFileSerializersFor($filename, $data = null,
-		MediaTypeInterface $mediaType = null,
+		?MediaTypeInterface $mediaType = null,
 		$normalizeMediaTypeFromMedia = true)
 	{
 		if ($normalizeMediaTypeFromMedia)
@@ -624,7 +624,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	}
 
 	public function serializeToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$mediaType = $this->normalizeMediaTypeFromMedia($filename,
 			$mediaType, MediaTypeFactory::FROM_EXTENSION);
@@ -681,7 +681,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	}
 
 	private function normalizeMediaTypeFromMedia($media,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if ($mediaType instanceof MediaTypeInterface)
 			return $mediaType;

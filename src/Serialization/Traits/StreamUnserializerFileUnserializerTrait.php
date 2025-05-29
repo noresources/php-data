@@ -19,7 +19,7 @@ trait StreamUnserializerFileUnserializerTrait
 	use FileUnserializerTrait;
 
 	public function unserializeFromFile($filename,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$stream = @\fopen($filename, 'rb');
 		if ($stream === false)

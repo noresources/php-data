@@ -25,7 +25,7 @@ interface DataSerializerInterface
 	 * @return boolean TRUE if the instance can serialize $data to $mediaType format
 	 */
 	function isSerializableTo($data,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 
 	/**
 	 * Serialize data to a given media type
@@ -37,5 +37,5 @@ interface DataSerializerInterface
 	 * @thros SerializationException
 	 * @return string
 	 */
-	function serializeData($data, MediaTypeInterface $mediaType = null);
+	function serializeData($data, ?MediaTypeInterface $mediaType = null);
 }

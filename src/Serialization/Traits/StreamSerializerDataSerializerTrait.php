@@ -20,13 +20,13 @@ trait StreamSerializerDataSerializerTrait
 {
 
 	public function isSerializableTo($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->defaultIsSerializableTo($data, $mediaType);
 	}
 
 	private function defaultIsSerializableTo($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if ($mediaType &&
 			($this instanceof SerializableMediaTypeInterface) &&
@@ -38,7 +38,7 @@ trait StreamSerializerDataSerializerTrait
 	}
 
 	public function serializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$stream = @\fopen('php://memory', 'w');
 		try

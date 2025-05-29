@@ -35,7 +35,7 @@ class PhpFileUnserializer implements UnserializableMediaTypeInterface,
 	use FileUnserializerTrait;
 
 	public function unserializeFromFile($filename,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$sandbox = new PhpFileUnserializerSandbox();
 		return $sandbox($filename);

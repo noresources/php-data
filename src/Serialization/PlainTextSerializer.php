@@ -57,7 +57,7 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	{}
 
 	public function unserializeFromStream($stream,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$list = [];
 		while (($line = \fgets($stream)) !== false)
@@ -92,7 +92,7 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if (!Container::isTraversable($data))
 			return \fwrite($stream, TypeConversion::toString($data));
@@ -126,7 +126,7 @@ class PlainTextSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	protected function recursiveSerializeData(&$stream, &$count,
-		&$visited, $data, MediaTypeInterface $mediaType = null)
+		&$visited, $data, ?MediaTypeInterface $mediaType = null)
 	{
 		if (\in_array($data, $visited))
 			return;

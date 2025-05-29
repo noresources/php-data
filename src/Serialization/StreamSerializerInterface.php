@@ -29,7 +29,7 @@ interface StreamSerializerInterface
 	 * @return TRUE if the given data can be serialized to the given data type
 	 */
 	function isSerializableToStream($stream, $data,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 
 	/**
 	 * Serialize data to the given stream
@@ -42,5 +42,5 @@ interface StreamSerializerInterface
 	 *        	Target media type
 	 */
 	function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 }

@@ -15,7 +15,7 @@ trait DataSerializerStreamSerializerTrait
 {
 
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$serialized = $this->serializeData($data, $mediaType);
 		$error = \json_last_error();

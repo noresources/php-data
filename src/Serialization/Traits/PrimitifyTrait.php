@@ -27,7 +27,7 @@ trait PrimitifyTrait
 	 * @return mixed|unknown|unknown[]|unknown
 	 */
 	public function primitifyData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if (!$mediaType)
 			return $this->primitifyDataFallback($data);

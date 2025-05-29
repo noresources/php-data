@@ -25,7 +25,7 @@ trait StreamSerializerFileSerializerTrait
 	}
 
 	public function serializeToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$stream = @\fopen($filename, 'wb');
 		if ($stream === false)

@@ -25,7 +25,7 @@ interface StreamUnserializerInterface
 	 *
 	 */
 	function isUnserializableFromStream($stream,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 
 	/**
 	 *
@@ -36,5 +36,5 @@ interface StreamUnserializerInterface
 	 * @return Deserialized data
 	 */
 	function unserializeFromStream($stream,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 }

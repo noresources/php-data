@@ -203,14 +203,14 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$data = $this->prepareSerialization($data);
 		$this->writeLinesToStream($stream, $data, $mediaType);
 	}
 
 	public function unserializeFromStream($stream,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$presentation = $this->retrievePresentationParameters(
 			$mediaType);
@@ -235,7 +235,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	public function unserializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$presentation = $this->retrievePresentationParameters(
 			$mediaType);
@@ -268,7 +268,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	protected function retrievePresentationParameters(
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$options = [
 			self::PARAMETER_FLATTEN => false,
@@ -417,7 +417,7 @@ class CsvSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	protected function prepareSerialization($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$data = $this->primitifyData($data, $mediaType);
 		$tableizer = new Tableifier();

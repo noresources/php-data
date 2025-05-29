@@ -24,7 +24,7 @@ interface DataUnserializerInterface
 	 * @return TRUE if instance support de-serialization of $mediaType content
 	 */
 	function isUnserializableFrom($data,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 
 	/**
 	 *
@@ -33,5 +33,5 @@ interface DataUnserializerInterface
 	 *        	Serialized content type
 	 * @return mixed
 	 */
-	function unserializeData($data, MediaTypeInterface $mediaType = null);
+	function unserializeData($data, ?MediaTypeInterface $mediaType = null);
 }

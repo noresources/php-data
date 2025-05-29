@@ -22,7 +22,7 @@ trait FileUnserializerTrait
 {
 
 	public function isUnserializableFromFile($filename,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$testExtension = $this instanceof FileExtensionListInterface &&
 			\is_string($filename);

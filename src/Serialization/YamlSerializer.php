@@ -80,7 +80,7 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$result = @\fwrite($stream,
 			$this->serializeData($data, $mediaType));
@@ -92,7 +92,7 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	public function serializeToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$encoding = $this->getEncoding($mediaType);
 		$result = @\yaml_emit_file($filename, $data, $encoding);
@@ -101,20 +101,20 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	public function unserializeFromStream($stream,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return \yaml_parse(\stream_get_contents($stream));
 	}
 
 	public function serializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$encoding = $this->getEncoding($mediaType);
 		return \yaml_emit($data, $encoding);
 	}
 
 	public function unserializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return \yaml_parse($data);
 	}
@@ -185,7 +185,7 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 		];
 	}
 
-	protected function getEncoding(MediaTypeInterface $mediaType = null)
+	protected function getEncoding(?MediaTypeInterface $mediaType = null)
 	{
 		$encoding = $this->encoding;
 		$charset = null;

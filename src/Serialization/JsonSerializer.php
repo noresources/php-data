@@ -110,7 +110,7 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	///////////////////////////////////////////////////
 	// StreamSerializer
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$flags = 0;
 		if ($mediaType)
@@ -141,7 +141,7 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	/////////////////////////////////////////////////
 	// StreamUnserializer
 	public function unserializeFromStream($stream,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$data = @\json_decode(\stream_get_contents($stream), true);
 		$error = \json_last_error();
@@ -160,7 +160,7 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	 * @see \NoreSources\Data\Serialization\DataUnserializerInterface::unserializeData()
 	 */
 	public function unserializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$data = @\json_decode($data, true);
 		$error = \json_last_error();

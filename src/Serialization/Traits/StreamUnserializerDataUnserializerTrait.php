@@ -20,7 +20,7 @@ trait StreamUnserializerDataUnserializerTrait
 {
 
 	public function isUnserializableFrom($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if ($mediaType &&
 			($this instanceof UnserializableMediaTypeInterface) &&
@@ -32,7 +32,7 @@ trait StreamUnserializerDataUnserializerTrait
 	}
 
 	public function unserializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$mt = '';
 		if ($mediaType)

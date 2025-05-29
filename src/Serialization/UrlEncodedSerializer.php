@@ -54,14 +54,14 @@ class UrlEncodedSerializer implements UnserializableMediaTypeInterface,
 	const MEDIA_TYPE = 'application/x-www-form-urlencoded';
 
 	public function unserializeFromStream($stream,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->unserializeData(\stream_get_contents($stream),
 			$mediaType);
 	}
 
 	public function unserializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$e = \strpos($data, '=');
 
@@ -76,13 +76,13 @@ class UrlEncodedSerializer implements UnserializableMediaTypeInterface,
 	}
 
 	public function serializeToStream($stream, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return \fwrite($stream, $this->serializedata($data, $mediaType));
 	}
 
 	public function serializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$data = $this->primitifyData($data, $mediaType);
 

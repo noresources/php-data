@@ -16,13 +16,13 @@ trait DataSerializerFileSerializerTrait
 	use FileSerializerTrait;
 
 	public function isSerializableToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->defaultIsSerializableToFile($filename, $data,
 			$mediaType);
 	}
 
 	public function serializeToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{}
 }

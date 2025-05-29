@@ -15,7 +15,7 @@ trait DataUnserializerStreamUnserializerTrait
 	use FileUnserializerTrait;
 
 	public function unserializeFromStream($stream,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		return $this->unserializeData(\stream_get_contents($stream),
 			$mediaType);

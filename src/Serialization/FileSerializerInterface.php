@@ -28,7 +28,7 @@ interface FileSerializerInterface
 	 *
 	 */
 	function isSerializableToFile($filename, $data,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 
 	/**
 	 *
@@ -38,5 +38,5 @@ interface FileSerializerInterface
 	 *        	File content type
 	 */
 	function serializeToFile($filename, $data,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 }

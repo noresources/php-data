@@ -24,7 +24,7 @@ interface FileUnserializerInterface
 	 * @return boolean TRUE if instance can unserialize file type
 	 */
 	function isUnserializableFromFile($filename,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 
 	/**
 	 *
@@ -36,5 +36,5 @@ interface FileUnserializerInterface
 	 * @return mixed
 	 */
 	function unserializeFromFile($filename,
-		MediaTypeInterface $mediaType = null);
+		?MediaTypeInterface $mediaType = null);
 }

@@ -71,7 +71,7 @@ class ApplePropertyListSerializer implements
 	}
 
 	public function isUnserializableFrom($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if ($mediaType)
 			return $this->isMediaTypeUnserializable($mediaType);
@@ -79,7 +79,7 @@ class ApplePropertyListSerializer implements
 	}
 
 	public function unserializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$document = null;
 		if ($data instanceof \DOMElement)
@@ -103,7 +103,7 @@ class ApplePropertyListSerializer implements
 	}
 
 	public function serializeData($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$document = $this->processData($data);
 		$document->formatOutput = $this->shouldFormat($mediaType);
@@ -111,7 +111,7 @@ class ApplePropertyListSerializer implements
 	}
 
 	public function isSerializableTo($data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		if ($mediaType)
 			return $this->isMediaTypeSerializable($mediaType);
@@ -119,7 +119,7 @@ class ApplePropertyListSerializer implements
 	}
 
 	public function serializeToFile($filename, $data,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$document = $this->processData($data);
 		$document->formatOutput = $this->shouldFormat($mediaType);
@@ -127,13 +127,13 @@ class ApplePropertyListSerializer implements
 	}
 
 	public function unserializeFromFile($filename,
-		MediaTypeInterface $mediaType = null)
+		?MediaTypeInterface $mediaType = null)
 	{
 		$xml = new XmlFormat();
 		return $xml->readFile($filename);
 	}
 
-	private function shouldFormat(MediaTypeInterface $mediaType = null)
+	private function shouldFormat(?MediaTypeInterface $mediaType = null)
 	{
 		if (!$mediaType)
 			return false;
