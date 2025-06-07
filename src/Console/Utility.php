@@ -18,6 +18,40 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Utility
 {
 
+	const IO_OUTPUT = 0x10;
+
+	const IO_INPUT = 0x11;
+
+	public static $IO_TYPE_NAMES = [
+		'input' => self::IO_INPUT,
+		'unserialize' => self::IO_INPUT,
+		'deserialize' => self::IO_INPUT,
+		'output' => self::IO_OUTPUT,
+		'serialize' => self::IO_OUTPUT,
+		'io' => self::IO_INPUT | self::IO_OUTPUT,
+		'all' => self::IO_INPUT | self::IO_OUTPUT
+	];
+
+	public static function getIOFlags($text)
+	{
+		if (empty($text))
+			return (self::IO_INPUT | self::IO_OUTPUT);
+
+		foreach (self::$IO_TYPE_NAMES as $name => $value)
+		{
+			if (\strcasecmp($name, $text) === 0)
+				return $value;
+		}
+		$list = Container::keys(self::$IO_TYPE_NAMES);
+		$list = Container::implodeValues($list,
+			[
+				Container::IMPLODE_BETWEEN => ', ',
+				Container::IMPLODE_BETWEEN_LAST => ' or '
+			]);
+		throw new \InvalidArgumentException(
+			'IO argument must be one of ' . $list);
+	}
+
 	/**
 	 *
 	 * @param InputInterface $input
