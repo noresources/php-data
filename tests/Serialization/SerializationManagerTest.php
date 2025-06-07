@@ -147,7 +147,13 @@ final class SerializationManagerTest extends \PHPUnit\Framework\TestCase
 
 				$data = $manager->unserializeFromFile($filename);
 
-				$this->assertTrue($manager->isSerializableTo($data),
+				$v = $manager->isSerializableTo($data);
+				$this->assertEquals('boolean',
+					TypeDescription::getName($v),
+					TypeDescription::getLocalName($manager) .
+					'::isSerializableTo() return value');
+
+				$this->assertTrue($v,
 					$label .
 					' - Can serialize the result of file deserialization');
 

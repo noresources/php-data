@@ -65,8 +65,13 @@ final class UrlEncodedSerializationTest extends SerializerTestCaseBase
 			]
 		] as $label => $value)
 		{
-			$this->assertTrue(
-				$serializer->isSerializableTo($value, $mediaType),
+			$v = $serializer->isSerializableTo($value, $mediaType);
+
+			$this->assertEquals('boolean', TypeDescription::getName($v),
+				TypeDescription::getLocalName($serializer) .
+				'::isSerializableTo() return value');
+
+			$this->assertTrue($v,
 				'Can serialize ' . $label . ' with media type');
 			$this->assertTrue($serializer->isSerializableTo($value),
 				'Can serialize ' . $label . ' without media type');

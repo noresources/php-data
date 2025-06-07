@@ -20,6 +20,7 @@ use NoreSources\Data\Serialization\UnserializableMediaTypeInterface;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
+use NoreSources\Type\TypeDescription;
 
 final class CsvSerializationTest extends SerializerTestCaseBase
 {
@@ -159,6 +160,11 @@ final class CsvSerializationTest extends SerializerTestCaseBase
 		$serializer = $this->createSerializer();
 
 		$valid = $serializer->isSerializableTo($input);
+
+		$this->assertEquals('boolean', TypeDescription::getName($valid),
+			TypeDescription::getLocalName($serializer) .
+			'::isSerializableTo() return value');
+
 		if (!$valid)
 		{
 			$this->assertFalse($valid);

@@ -260,9 +260,14 @@ class SerializerTestCaseBase extends \PHPUnit\Framework\TestCase
 			$data = $expected;
 			if ($serializer instanceof FileSerializerInterface)
 			{
-				$this->assertTrue(
-					$serializer->isSerializableToFile($derived, $data,
-						$mediaType),
+				$v = $serializer->isSerializableToFile($derived, $data,
+					$mediaType);
+				$this->assertEquals('boolean',
+					TypeDescription::getName($v),
+					TypeDescription::getLocalName($serializer) .
+					'::isSerializableTo() return value');
+
+				$this->assertTrue($v,
 					$serializeName . ' can serialize file ' .
 					$mediaTypeMessagePart);
 

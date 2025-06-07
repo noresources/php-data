@@ -16,6 +16,7 @@ use NoreSources\Data\Serialization\Shellscript\ShellscriptWriter;
 use NoreSources\Data\Utility\FileExtensionListInterface;
 use NoreSources\Data\Utility\MediaTypeListInterface;
 use NoreSources\MediaType\MediaTypeFactory;
+use NoreSources\Type\TypeDescription;
 
 final class ShellscriptSerializationTest extends SerializerTestCaseBase
 {
@@ -227,6 +228,12 @@ final class ShellscriptSerializationTest extends SerializerTestCaseBase
 				$expected = $test[$offset + 1];
 				$actual = $serializer->isSerializableTo($data,
 					$mediaType);
+
+				$this->assertEquals('boolean',
+					TypeDescription::getName($actual),
+					TypeDescription::getLocalName($serializer) .
+					'::isSerializableTo() return value');
+
 				$text = $label . ' is ';
 				if (!$expected)
 					$text .= 'not ';

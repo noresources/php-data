@@ -136,6 +136,8 @@ final class PlainTextSerializationTest extends SerializerTestCaseBase
 	public function testSerialize()
 	{
 		$s = new PlainTextSerializer();
+		$mt = MediaTypeFactory::getInstance()->createFromString(
+			self::MEDIA_TYPE);
 		$tests = [
 			'basic' => [
 				'input' => 'Hello',
@@ -194,8 +196,18 @@ final class PlainTextSerializationTest extends SerializerTestCaseBase
 				true);
 			$this->assertEquals($serializable,
 				$s->isContentSerializable($input),
+				$label . ' content is ' . ($serializable ? '' : 'not ') .
+				'serializable');
+
+			$v = $s->isSerializableTo($input, $mt);
+			$this->assertEquals('boolean', TypeDescription::getName($v),
+				TypeDescription::getLocalName($s) .
+				'::isSerializableTo() return value');
+
+			$this->assertEquals($serializable, $v,
 				$label . ' is ' . ($serializable ? '' : 'not ') .
 				'serializable');
+
 			$expected = $test['expected'];
 			$actual = $s->serializeData($input);
 			$this->assertEquals($expected, $actual, $label);
