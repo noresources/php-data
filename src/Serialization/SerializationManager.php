@@ -17,6 +17,7 @@ use NoreSources\MediaType\Comparison;
 use NoreSources\MediaType\MediaTypeException;
 use NoreSources\MediaType\MediaTypeFactory;
 use NoreSources\MediaType\MediaTypeInterface;
+use NoreSources\Type\TypeDescription;
 
 /**
  * Data(De)serializer aggregate
@@ -213,6 +214,16 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 			$mediaType, false);
 
 		$messages = [];
+		if (Container::count($list) == 0)
+		{
+			$m = 'No serializer available to serialize ' .
+				TypeDescription::getName($data) . ' to';
+			if ($mediaType)
+				$m .= ' ' . \strval($mediaType);
+			$m .= ' stream';
+			$messages[] = $m;
+		}
+
 		/**
 		 *
 		 * @var DataSerializerInterface $e
@@ -283,6 +294,15 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 
 		$list = $this->getStreamUnserializersFor($stream, $mediaType,
 			false);
+		if (Container::count($list) == 0)
+		{
+			$m = 'No deserializer available to unserialize ' .
+				TypeDescription::getName($data) . ' from';
+			if ($mediaType)
+				$m .= ' ' . \strval($mediaType);
+			$m .= ' stream';
+			$messages[] = $m;
+		}
 
 		/**
 		 *
@@ -347,6 +367,15 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 	{
 		$list = $this->getDataUnserializersFor($data, $mediaType);
 		$messages = [];
+		if (Container::count($list) == 0)
+		{
+			$m = 'No deserializer available to unserialize ' .
+				TypeDescription::getName($data);
+			if ($mediaType)
+				$m .= ' from ' . \strval($mediaType);
+			$messages[] = $m;
+		}
+
 		foreach ($list as $e)
 		{
 			try
@@ -413,6 +442,16 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 			return $data->serialize();
 		$list = $this->getDataSerializersFor($data, $mediaType);
 		$messages = [];
+
+		if (Container::count($list) == 0)
+		{
+			$m = 'No serializer available to serialize ' .
+				TypeDescription::getName($data);
+			if ($mediaType)
+				$m .= ' to ' . \strval($mediaType);
+			$messages[] = $m;
+		}
+
 		foreach ($list as $e)
 		{
 			try
@@ -481,6 +520,17 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 		$list = $this->getFileUnserializersFor($filename, $mediaType,
 			false);
 		$messages = [];
+
+		if (Container::count($list) == 0)
+		{
+			$m = 'No deserializer available to unserialize ' .
+				TypeDescription::getName($data) . ' from';
+			if ($mediaType)
+				$m .= ' ' . \strval($mediaType);
+			$m .= ' file';
+			$messages[] = $m;
+		}
+
 		foreach ($list as $e)
 		{
 			try
@@ -631,6 +681,17 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 		$list = $this->getFileSerializersFor($filename, $data,
 			$mediaType, false);
 		$messages = [];
+
+		if (Container::count($list) == 0)
+		{
+			$m = 'No deserializer available to unserialize ' .
+				TypeDescription::getName($data) . ' from';
+			if ($mediaType)
+				$m .= ' ' . \strval($mediaType);
+			$m .= ' file';
+			$messages[] = $m;
+		}
+
 		foreach ($list as $e)
 		{
 			try
