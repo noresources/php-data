@@ -8,9 +8,10 @@
  */
 namespace NoreSources\Data\Console;
 
-use NoreSources\Data\Console\Command\ConvertCommand;
-use Symfony\Component\Console\Input\InputOption;
 use NoreSources\Data\Console\Command\AnalyzeCommand;
+use NoreSources\Data\Console\Command\ConvertCommand;
+use NoreSources\Data\Console\Command\ListMediaTypesCommand;
+use Symfony\Component\Console\Input\InputOption;
 
 class Application extends \Symfony\Component\Console\Application
 {
@@ -21,6 +22,7 @@ class Application extends \Symfony\Component\Console\Application
 
 		$this->add(new ConvertCommand());
 		$this->add(new AnalyzeCommand());
+		$this->add(new ListMediaTypesCommand());
 		$this->getDefinition()->addOption(
 			new InputOption('auto-register-serializers', 'a', null,
 				'Auto register (de)serializers based on composer package descriptions'));
