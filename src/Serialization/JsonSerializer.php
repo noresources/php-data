@@ -84,12 +84,18 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	 *
 	 * Default is unlimited
 	 *
+	 * @deprecated Use SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT
 	 * @var string
 	 */
 	const PARAMETER_DEPTH = SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT;
 
 	const PARAMETER_STYLE = SerializationParameter::PRESENTATION_STYLE;
 
+	/**
+	 *
+	 * @deprecated Use SerializationParameter::PRESENTATION_STYLE_PRETTY
+	 * @var unknown
+	 */
 	const STYLE_PRETTY = SerializationParameter::PRESENTATION_STYLE_PRETTY;
 
 	public function __construct()
@@ -118,7 +124,9 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 			$p = $mediaType->getParameters();
 
 			if (($style = Container::keyValue($p, 'style')) &&
-				(\strcasecmp($style, self::STYLE_PRETTY) == 0))
+				(\strcasecmp($style,
+					SerializationParameter::PRESENTATION_STYLE_PRETTY) ==
+				0))
 				$flags |= JSON_PRETTY_PRINT;
 		}
 
@@ -221,8 +229,8 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 		{
 			self::$supportedMediaTypeParameters = [
 				self::MEDIA_TYPE => [
-					self::PARAMETER_STYLE => self::STYLE_PRETTY,
-					self::PARAMETER_DEPTH => true
+					self::PARAMETER_STYLE => SerializationParameter::PRESENTATION_STYLE_PRETTY,
+					SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true
 				]
 			];
 		}
