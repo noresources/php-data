@@ -133,7 +133,7 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 
 		if (\strcasecmp($options[self::PARAMETER_MODE],
 			self::MODE_MODULE) == 0)
-			fwrite($stream, 'require ');
+			fwrite($stream, 'return ');
 
 		if (Container::isTraversable($data))
 			return $this->serializeTable($stream, $data, $options);
