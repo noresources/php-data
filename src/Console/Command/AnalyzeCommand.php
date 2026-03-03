@@ -47,7 +47,7 @@ class AnalyzeCommand extends Command
 	}
 
 	public function execute(InputInterface $input,
-		OutputInterface $output)
+		OutputInterface $output) : int
 	{
 		$filename = $input->getArgument('input');
 		if (!\is_file($filename))

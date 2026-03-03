@@ -52,7 +52,7 @@ class ConvertCommand extends Command
 	}
 
 	public function execute(InputInterface $input,
-		OutputInterface $output)
+		OutputInterface $output) : int
 	{
 		$errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
 		try
