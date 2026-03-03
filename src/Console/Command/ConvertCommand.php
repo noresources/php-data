@@ -20,6 +20,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[\Symfony\Component\Console\Attribute\AsCommand(name: 'convert')]
 class ConvertCommand extends Command
 {
 
@@ -52,7 +53,7 @@ class ConvertCommand extends Command
 	}
 
 	public function execute(InputInterface $input,
-		OutputInterface $output) : int
+		OutputInterface $output): int
 	{
 		$errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
 		try

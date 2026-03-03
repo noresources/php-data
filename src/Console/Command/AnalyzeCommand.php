@@ -22,6 +22,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[\Symfony\Component\Console\Attribute\AsCommand(name: 'analyze')]
 class AnalyzeCommand extends Command
 {
 
@@ -47,7 +48,7 @@ class AnalyzeCommand extends Command
 	}
 
 	public function execute(InputInterface $input,
-		OutputInterface $output) : int
+		OutputInterface $output): int
 	{
 		$filename = $input->getArgument('input');
 		if (!\is_file($filename))

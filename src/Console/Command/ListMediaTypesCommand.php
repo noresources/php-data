@@ -21,6 +21,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[\Symfony\Component\Console\Attribute\AsCommand(name: 'list-media-types')]
 class ListMediaTypesCommand extends Command
 {
 
@@ -55,7 +56,7 @@ class ListMediaTypesCommand extends Command
 	}
 
 	public function execute(InputInterface $input,
-		OutputInterface $output) : int
+		OutputInterface $output): int
 	{
 		$errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
 		$manager = Utility::createSerializationManager($input, $output);
