@@ -296,8 +296,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 			false);
 		if (Container::count($list) == 0)
 		{
-			$m = 'No deserializer available to unserialize ' .
-				TypeDescription::getName($data) . ' from';
+			$m = 'No deserializer available to unserialize content from';
 			if ($mediaType)
 				$m .= ' ' . \strval($mediaType);
 			$m .= ' stream';
@@ -523,8 +522,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 
 		if (Container::count($list) == 0)
 		{
-			$m = 'No deserializer available to unserialize ' .
-				TypeDescription::getName($data) . ' from';
+			$m = 'No deserializer available to unserialize content from';
 			if ($mediaType)
 				$m .= ' ' . \strval($mediaType);
 			$m .= ' file';
