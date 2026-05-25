@@ -77,7 +77,7 @@ class CollectionClass
 	{
 		$names = [];
 
-		if (($collectionClass & self::TABLE) & self::TABLE)
+		if (($collectionClass & self::TABLE) == self::TABLE)
 			$names[] = self::NAME_TABLE;
 
 		if (($collectionClass & self::INDEXED) == self::INDEXED)
