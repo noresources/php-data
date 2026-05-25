@@ -247,7 +247,7 @@ class IniParser
 			$this->value = '';
 		elseif (!$this->continue)
 			$this->value .= PHP_EOL;
-		$this->continue = false;
+
 		$this->continue = false;
 
 		$length = \strlen($text);
@@ -282,10 +282,9 @@ class IniParser
 			if (($this->flags & $f) == $f)
 			{
 				$length = \strlen($this->value);
-				if ($this->value[$length - 1] == '\\')
+				if ($length && $this->value[$length - 1] == '\\')
 				{
 					$this->value = \substr($this->value, 0, $length - 1);
-
 					$this->continue = true;
 				}
 			}
