@@ -207,7 +207,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 		?MediaTypeInterface $mediaType = null)
 	{
 		if (!$mediaType)
-			$mediaType = $this->normalizeMediaTypeFromMedia($stack,
+			$mediaType = $this->normalizeMediaTypeFromMedia($stream,
 				$mediaType);
 
 		$list = $this->getStreamSerializersFor($stream, $data,
@@ -682,7 +682,7 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 
 		if (Container::count($list) == 0)
 		{
-			$m = 'No deserializer available to unserialize ' .
+			$m = 'No serializer available to serialize ' .
 				TypeDescription::getName($data) . ' from';
 			if ($mediaType)
 				$m .= ' ' . \strval($mediaType);
@@ -708,8 +708,6 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 
 		$name = ($mediaType) ? \strval($mediaType) : \pathinfo(
 			$filename, PATHINFO_EXTENSION);
-		throw new SerializationException(
-			'No deserializer found for ' . $name . ' file');
 		throw new SerializationException(
 			'No serializer found for ' . $name . ' file');
 	}
@@ -753,8 +751,6 @@ class SerializationManager implements UnserializableMediaTypeInterface,
 		{
 			return null;
 		}
-
-		return ($mediaType && \strval($mediaType) == 'text/plain') ? null : $mediaType;
 	}
 
 	/**
