@@ -139,7 +139,8 @@ class Primitifier
 		if (!(\is_string($key) || \is_integer($key)))
 			throw new \InvalidArgumentException(
 				'Integer or string expected.');
-		$this->singleValueKey;
+
+		$this->singleValueKey = $key;
 	}
 
 	/**
