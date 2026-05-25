@@ -1,63 +1,63 @@
 {
-	"name": "noresources/data", 
-	"description": "Data (de)serialization library", 
-	"type": "library", 
-	"license": "MIT", 
+	"name": "noresources/data",
+	"description": "Data (de)serialization library",
+	"type": "library",
+	"license": "MIT",
 	"keywords": [
 		"serialization"
-	], 
+	],
 	"authors": [
 		{
-			"name": "Renaud Guillard", 
-			"email": "dev@nore.fr", 
+			"name": "Renaud Guillard",
+			"email": "dev@nore.fr",
 			"role": "lead"
 		}
-	], 
+	],
 	"autoload": {
 		"psr-4": {
-			"NoreSources\\Data\\": "src/", 
+			"NoreSources\\Data\\": "src/",
 			"NoreSources\\Data\\Test\\": "tests/src/"
 		}
-	}, 
+	},
 	"require": {
-		"php": ">= 7.1", 
-		"noresources/mediatype": "^2.0", 
-		"noresources/reflection": "^1.0", 
-		"symfony/console": ">=4.0 <8.0", 
+		"php": ">= 7.1",
+		"noresources/mediatype": "^2.0",
+		"noresources/reflection": "^1.0",
+		"symfony/console": ">=4.0 <8.0",
 		"symfony/polyfill-mbstring": "^1.31"
-	}, 
+	},
 	"suggest": {
-		"ext-json": "To use JSON (de)serializer", 
-		"ext-yaml": "To use YAML (de)serializer", 
+		"ext-json": "To use JSON (de)serializer",
+		"ext-yaml": "To use YAML (de)serializer",
 		"ext-dom": "To use Apple XML property list (de)serializer"
-	}, 
+	},
 	"scripts": {
-		"test": "@php  ./vendor/bin/phpunit --color=never --bootstrap vendor/autoload.php tests"
-	}, 
+		"test": "@php  ./vendor/bin/phpunit --color=never --strict-coverage --disallow-test-output --strict-global-state --bootstrap vendor/autoload.php tests"
+	},
 	"autoload-dev": {
 		"psr-4": {
 			"NoreSources\\Data\\TestCase\\": "tests/"
 		}
-	}, 
+	},
 	"require-dev": {
 		"phpunit/phpunit": ">= 7.0"
-	}, 
+	},
 	"extra": {
 		"branch-alias": {
-			"dev-1.2.x": "1.2.x-dev", 
-			"dev-1.4.x": "1.4.x-dev", 
-			"dev-2.0.x": "2.0.x-dev", 
-			"dev-2.3.x": "2.3.x-dev", 
-			"dev-2.4.x": "2.4.x-dev", 
+			"dev-1.2.x": "1.2.x-dev",
+			"dev-1.4.x": "1.4.x-dev",
+			"dev-2.0.x": "2.0.x-dev",
+			"dev-2.3.x": "2.3.x-dev",
+			"dev-2.4.x": "2.4.x-dev",
 			"dev-main": "3.1.x-dev"
 		}
-	}, 
+	},
 	"bin": [
 		"bin/ns-php-data"
-	], 
+	],
 	"replace": {
 		"noresources/ns-php-data": "3.0"
-	}, 
+	},
 	"support": {
 		"issues": "https://github.com/noresources/php-data/issues"
 	}
