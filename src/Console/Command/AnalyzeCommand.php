@@ -168,8 +168,8 @@ class AnalyzeCommand extends Command
 			Container::COUNTABLE => 'countable',
 			Container::MODIFIABLE => 'modifiable',
 			Container::SHRINKABLE => 'shrinkable',
-			COntainer::EXTENDABLE => 'extendable',
-			COntainer::TRAVERSABLE => 'traversable',
+			Container::EXTENDABLE => 'extendable',
+			Container::TRAVERSABLE => 'traversable',
 			Container::RANDOM_ACCESS => 'random-access',
 			Container::PROPERTY_ACCESS => 'property-access',
 			Container::OFFSET_ACCESS => 'offset-access'

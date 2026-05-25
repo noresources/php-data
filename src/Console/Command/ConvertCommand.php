@@ -159,7 +159,7 @@ class ConvertCommand extends Command
 			}
 			catch (MediaTypeException $e)
 			{
-				$extension = @\pathinfo($inputURI);
+				$extension = @\pathinfo($inputURI, PATHINFO_EXTENSION);
 				if ($extension)
 					$inputMediaType = Container::firstValue(
 						$manager->getMediaTypesForExtension($extension));
@@ -203,7 +203,7 @@ class ConvertCommand extends Command
 			try
 			{
 				$outputMediaType = $mediaTypeFactory->createFromMedia(
-					$outputMediaType);
+					$outputStream);
 			}
 			catch (MediaTypeException $e)
 			{}
@@ -288,7 +288,7 @@ class ConvertCommand extends Command
 			$output->writeln(
 				' * Media type: ' . $outputMediaType->jsonSerialize());
 			$output->writeln(
-				' * ' . \count($outputSerializers) . ' deserializers');
+				' * ' . \count($outputSerializers) . ' serializers');
 			$output->writeln(
 				Container::implodeValues(
 					\array_map('\get_class', $outputSerializers),
@@ -302,7 +302,7 @@ class ConvertCommand extends Command
 			$output->writeln(
 				'Input ' . $inputURI . ' (' . $inputMediaType . ')');
 			$output->writeln(
-				'Outout ' . $outputURI . ' (' . $outputMediaType . ')');
+				'Output ' . $outputURI . ' (' . $outputMediaType . ')');
 		}
 
 		$data = null;
