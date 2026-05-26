@@ -18,7 +18,6 @@ trait DataSerializerStreamSerializerTrait
 		?MediaTypeInterface $mediaType = null)
 	{
 		$serialized = $this->serializeData($data, $mediaType);
-		$error = \json_last_error();
 
 		$written = @\fwrite($stream, $serialized);
 		if ($written === false)
