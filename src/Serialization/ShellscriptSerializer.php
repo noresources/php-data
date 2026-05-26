@@ -275,8 +275,8 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 		if (!isset(self::$supportedMediaTypeParameters))
 		{
 			self::$supportedMediaTypeParameters = [
-				SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true,
 				self::MEDIA_TYPE => [
+					SerializationParameter::PRE_TRANSFORM_RECURSION_LIMIT => true,
 					self::PARAMETER_VARIABLE_CASE => [
 						self::VARIABLE_CASE_CAMEL,
 						self::VARIABLE_CASE_MACRO,
