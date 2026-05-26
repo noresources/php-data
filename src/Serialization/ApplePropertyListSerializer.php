@@ -93,7 +93,8 @@ class ApplePropertyListSerializer implements
 		try
 		{
 			$xmlFormat = new XmlFormat();
-			$document->loadXML($data);
+			if (\is_string($data))
+				$document->loadXML($data);
 			return $xmlFormat->extractPropertiesFromDocument($document);
 		}
 		catch (\Exception $e)
