@@ -199,6 +199,7 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 		{
 			case 'utf-8':
 				$encoding = YAML_UTF8_ENCODING;
+			break;
 			case 'utf-16':
 			case 'utf-16-be':
 				$encoding = YAML_UTF16BE_ENCODING;
