@@ -102,7 +102,7 @@ class XmlFormat
 			case 'real':
 				return TypeConversion::toFloat($node->nodeValue);
 			case 'date':
-				return \DateTime::createFromFormat(DateTime::ISO8601,
+				return \DateTime::createFromFormat(DateTime::ATOM,
 					$node->nodeValue);
 			case 'array':
 				$xpath = new \DOMXPath($node->ownerDocument);
@@ -203,7 +203,7 @@ class XmlFormat
 				TypeConversion::toString($value));
 		elseif ($value instanceof \DateTimeInterface)
 			$value = $document->createElement('date',
-				$value->format(DateTime::ISO8601));
+				$value->format(DateTime::ATOM));
 		else
 			$value = $document->createElement('string',
 				TypeConversion::toString($value));

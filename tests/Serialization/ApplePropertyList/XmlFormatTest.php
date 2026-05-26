@@ -70,7 +70,7 @@ class XmlFormatTest extends \PHPUnit\Framework\TestCase
 		foreach ([
 			'bool' => true,
 			'int' => 42,
-			'date' => DateTime::createFromFormat(DateTime::ISO8601,
+			'date' => DateTime::createFromFormat(DateTime::ATOM,
 				'2013-12-11T10:09:08+0700'),
 			'real' => 3.14,
 			'string' => 'Hello world!',

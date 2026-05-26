@@ -197,7 +197,7 @@ class JsonSerializer implements UnserializableMediaTypeInterface,
 	protected function preprocessDataForEncoding($data, $depth)
 	{
 		if ($data instanceof \DateTimeInterface)
-			return $data->format(\DateTime::ISO8601);
+			return $data->format(\DateTime::ATOM);
 
 		if ($depth == 0)
 			return $data;
