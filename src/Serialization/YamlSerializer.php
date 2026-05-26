@@ -142,7 +142,7 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 		return $this->isMediaTypeSerializable($mediaType);
 	}
 
-	public function buildMediaTypeList()
+	protected function buildMediaTypeList()
 	{
 		$factory = MediaTypeFactory::getInstance();
 		return [
@@ -185,7 +185,8 @@ class YamlSerializer implements UnserializableMediaTypeInterface,
 		];
 	}
 
-	protected function getEncoding(?MediaTypeInterface $mediaType = null)
+	protected function getEncoding(
+		?MediaTypeInterface $mediaType = null)
 	{
 		$encoding = $this->encoding;
 		$charset = null;

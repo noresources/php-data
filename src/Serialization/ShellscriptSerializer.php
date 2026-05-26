@@ -234,7 +234,7 @@ class ShellscriptSerializer implements SerializableMediaTypeInterface,
 		}
 	}
 
-	public function buildMediaTypeList()
+	protected function buildMediaTypeList()
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(

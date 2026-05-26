@@ -226,7 +226,7 @@ class LuaSerializer implements SerializableMediaTypeInterface,
 		return self::$supportedMediaTypeParameters;
 	}
 
-	public function buildMediaTypeList()
+	protected function buildMediaTypeList()
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(

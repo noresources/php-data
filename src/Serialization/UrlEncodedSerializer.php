@@ -92,7 +92,7 @@ class UrlEncodedSerializer implements UnserializableMediaTypeInterface,
 		return \urlencode(TypeConversion::toString($data));
 	}
 
-	public function buildMediaTypeList()
+	protected function buildMediaTypeList()
 	{
 		return [
 			MediaTypeFactory::getInstance()->createFromString(
